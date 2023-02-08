@@ -33,9 +33,9 @@ class UserController {
     lateinit var orderService: OrderService
 
     @Error(exception = HttpException::class)
-    fun onHttpException(exception: HttpException): HttpResponse<*> {
+    fun onHttpException(exception: HttpException): HttpResponse<Map<String, ArrayList<String>>> {
         return HttpResponse.status<Map<String, ArrayList<String>>>(exception.status)
-            .body(mapOf("errors" to arrayListOf(exception.message)))
+            .body(mapOf("errors" to arrayListOf(exception.message!!)))
     }
 
     @Error(exception = JsonProcessingException::class)
@@ -47,28 +47,28 @@ class UserController {
     fun onUnsatisfiedBodyRouteException(
         request: HttpRequest<*>,
         ex: UnsatisfiedBodyRouteException
-    ): HttpResponse<Map<String, List<*>>> {
+    ): HttpResponse<Map<String, ArrayList<String>>> {
         return HttpResponse.badRequest(mapOf("errors" to arrayListOf("Request body missing")))
     }
 
     @Error(status = HttpStatus.NOT_FOUND, global = true)
-    fun onRouteNotFound(): HttpResponse<Map<String, List<*>>> {
+    fun onRouteNotFound(): HttpResponse<Map<String, ArrayList<String>>> {
         return HttpResponse.notFound(mapOf("errors" to arrayListOf("Route not found")))
     }
 
     @Error(exception = ConversionErrorException::class)
-    fun onConversionErrorException(ex: ConversionErrorException): HttpResponse<Map<String, List<*>>> {
-        return HttpResponse.badRequest(mapOf("errors" to arrayListOf(ex.message)))
+    fun onConversionErrorException(ex: ConversionErrorException): HttpResponse<Map<String, ArrayList<String>>> {
+        return HttpResponse.badRequest(mapOf("errors" to arrayListOf(ex.message!!)))
     }
 
     @Error(exception = ConstraintViolationException::class)
-    fun onConstraintViolationException(ex: ConstraintViolationException): HttpResponse<Map<String, List<*>>> {
-        return HttpResponse.badRequest(mapOf("errors" to ex.constraintViolations.map { it.message }))
+    fun onConstraintViolationException(ex: ConstraintViolationException): HttpResponse<Map<String, ArrayList<String>>> {
+        return HttpResponse.badRequest(mapOf("errors" to arrayListOf(ex.message!!)))
     }
 
     @Error(exception = RuntimeException::class)
-    fun onRuntimeError(ex: RuntimeException): HttpResponse<Map<String, List<*>>> {
-        return HttpResponse.serverError(mapOf("errors" to arrayListOf(ex.message)))
+    fun onRuntimeError(ex: RuntimeException):HttpResponse<Map<String, ArrayList<String>>> {
+        return HttpResponse.serverError(mapOf("errors" to arrayListOf(ex.message!!)))
     }
 
 
