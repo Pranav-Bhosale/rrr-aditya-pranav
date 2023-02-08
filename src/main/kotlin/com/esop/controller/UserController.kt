@@ -68,7 +68,7 @@ class UserController {
 
     @Error(exception = RuntimeException::class)
     fun onRuntimeError(ex: RuntimeException): HttpResponse<Map<String, List<*>>> {
-        return HttpResponse.serverError(mapOf("errors" to arrayListOf(ex.message)))
+        return HttpResponse.serverError(mapOf("errors" to arrayListOf(ex.message )))
     }
 
 
