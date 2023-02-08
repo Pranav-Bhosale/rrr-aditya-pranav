@@ -86,7 +86,7 @@ class UserController {
         var errorList = mutableListOf<String>()
 
         val orderType: String = orderData.type.toString().uppercase()
-        var esopType = "NON_PERFORMANCE"
+        val esopType: String
 
         if (orderType == "SELL") {
             esopType = orderData.esopType.toString().uppercase()
@@ -96,7 +96,12 @@ class UserController {
             }
         }
 
-        val order = Order(orderData.quantity!!.toLong(), orderData.type.toString().uppercase(), orderData.price!!.toLong(), userName)
+        val order = Order(
+            orderData.quantity!!.toLong(),
+            orderData.type.toString().uppercase(),
+            orderData.price!!.toLong(),
+            userName
+        )
 
         errorList = userService.orderCheckBeforePlace(order)
         if (errorList.size > 0) {
@@ -104,8 +109,8 @@ class UserController {
         }
         val userOrderOrErrors = orderService.placeOrder(order)
 
-        if (userOrderOrErrors["orderId"] != null) {
-            return HttpResponse.ok(
+        return if (userOrderOrErrors["orderId"] != null) {
+            HttpResponse.ok(
                 mapOf(
                     "orderId" to userOrderOrErrors["orderId"],
                     "quantity" to orderData.quantity,
@@ -114,7 +119,7 @@ class UserController {
                 )
             )
         } else {
-            return HttpResponse.badRequest(userOrderOrErrors)
+            HttpResponse.badRequest(userOrderOrErrors)
         }
     }
 

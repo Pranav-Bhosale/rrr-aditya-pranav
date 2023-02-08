@@ -42,12 +42,13 @@ class User(
     fun lockAmount(price: Long): String {
         return userWallet.moveMoneyFromFreeToLockedState(price)
     }
+
     private fun getInventory(type: String): Inventory {
         if (type == "PERFORMANCE") return userPerformanceInventory
         return userNonPerfInventory
     }
 
-    fun transferLockedESOPsTo(buyer: User, esopTransferData : EsopTransferRequest) {
+    fun transferLockedESOPsTo(buyer: User, esopTransferData: EsopTransferRequest) {
         this.getInventory(esopTransferData.esopType).removeESOPsFromLockedState(esopTransferData.currentTradeQuantity)
         buyer.getInventory("NON_PERFORMANCE").addESOPsToInventory(esopTransferData.currentTradeQuantity)
     }

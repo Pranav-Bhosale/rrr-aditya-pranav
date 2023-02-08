@@ -1,7 +1,7 @@
 package com.esop.schema
 
 import com.esop.InventoryLimitExceededException
-import com.esop.constant.MAX_INVENTORY_CAPACITY
+import com.esop.MAX_INVENTORY_CAPACITY
 import java.util.*
 
 class Inventory(

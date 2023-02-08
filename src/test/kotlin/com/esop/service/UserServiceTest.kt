@@ -2,8 +2,8 @@ package com.esop.service
 
 import com.esop.InventoryLimitExceededException
 import com.esop.WalletLimitExceededException
-import com.esop.constant.MAX_INVENTORY_CAPACITY
-import com.esop.constant.MAX_WALLET_CAPACITY
+import com.esop.MAX_INVENTORY_CAPACITY
+import com.esop.MAX_WALLET_CAPACITY
 import com.esop.dto.AddInventoryDTO
 import com.esop.dto.AddWalletDTO
 import com.esop.dto.UserCreationDTO
