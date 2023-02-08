@@ -2,6 +2,7 @@ package com.esop.service
 
 
 import com.esop.errors
+import com.esop.repository.OrderRecords
 import com.esop.repository.UserRecords
 import com.esop.schema.*
 import com.esop.schema.PlatformFee.Companion.addPlatformFee
@@ -12,18 +13,7 @@ import kotlin.math.round
 private const val TWO_PERCENT = 0.02
 
 @Singleton
-class OrderService(private val userRecords: UserRecords) {
-    companion object {
-        private var orderId = 1L
-
-        var buyOrders = mutableListOf<Order>()
-        var sellOrders = mutableListOf<Order>()
-    }
-
-    @Synchronized
-    fun generateOrderId(): Long {
-        return orderId++
-    }
+class OrderService(private val userRecords: UserRecords, private val orderRecords: OrderRecords) {
 
     private fun updateOrderDetails(
         currentTradeQuantity: Long,
@@ -64,33 +54,8 @@ class OrderService(private val userRecords: UserRecords) {
     }
 
 
-    private fun sortAscending(): List<Order> {
-        return sellOrders.sortedWith(object : Comparator<Order> {
-            override fun compare(o1: Order, o2: Order): Int {
-
-                if (o1.inventoryPriority != o2.inventoryPriority)
-                    return o1.inventoryPriority.priority - o2.inventoryPriority.priority
-
-                if (o1.inventoryPriority.priority == 1) {
-                    if (o1.timeStamp < o2.timeStamp)
-                        return -1
-                    return 1
-                }
-
-                if (o1.getPrice() == o2.getPrice()) {
-                    if (o1.timeStamp < o2.timeStamp)
-                        return -1
-                    return 1
-                }
-                if (o1.getPrice() < o2.getPrice())
-                    return -1
-                return 1
-            }
-        })
-    }
-
     fun placeOrder(order: Order): Map<String, Any> {
-        order.orderID = generateOrderId()
+        order.orderID = orderRecords.generateOrderId()
 
         if (order.getType() == "BUY") {
             executeBuyOrder(order)
@@ -102,24 +67,27 @@ class OrderService(private val userRecords: UserRecords) {
     }
 
     private fun executeBuyOrder(buyOrder: Order) {
-        buyOrders.add(buyOrder)
-        val sortedSellOrders = sortAscending()
-
-        for (sellOrder in sortedSellOrders) {
-            if ((buyOrder.getPrice() >= sellOrder.getPrice()) && (sellOrder.remainingQuantity > 0)) {
+        orderRecords.addBuyOrder(buyOrder)
+        var sellOrder = orderRecords.getSellOrder()
+        if (sellOrder != null) {
+            while (buyOrder.orderStatus != "COMPLETED" && sellOrder!!.getPrice() <= buyOrder.getPrice()) {
                 performOrderMatching(sellOrder, buyOrder)
+                sellOrder = orderRecords.getSellOrder()
+                if (sellOrder == null)
+                    break
             }
         }
     }
 
     private fun executeSellOrder(sellOrder: Order) {
-        sellOrders.add(sellOrder)
-        val sortedBuyOrders =
-            buyOrders.sortedWith(compareByDescending<Order> { it.getPrice() }.thenBy { it.timeStamp })
-
-        for (buyOrder in sortedBuyOrders) {
-            if ((sellOrder.getPrice() <= buyOrder.getPrice()) && (buyOrder.remainingQuantity > 0)) {
+        orderRecords.addSellOrder(sellOrder)
+        var buyOrder = orderRecords.getBuyOrder()
+        if (buyOrder != null) {
+            while (sellOrder.orderStatus != "COMPLETED" && sellOrder.getPrice() <= buyOrder!!.getPrice()) {
                 performOrderMatching(sellOrder, buyOrder)
+                buyOrder = orderRecords.getBuyOrder()
+                if (buyOrder == null)
+                    break
             }
         }
     }
@@ -143,10 +111,10 @@ class OrderService(private val userRecords: UserRecords) {
         )
 
         if (buyOrder.orderStatus == "COMPLETED") {
-            buyOrders.remove(buyOrder)
+            orderRecords.removeBuyOrder(buyOrder)
         }
         if (sellOrder.orderStatus == "COMPLETED") {
-            sellOrders.remove(sellOrder)
+            orderRecords.removeSellOrder(sellOrder)
         }
     }
 

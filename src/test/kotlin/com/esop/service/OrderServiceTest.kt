@@ -1,11 +1,9 @@
 package com.esop.service
 
+import com.esop.repository.OrderRecords
 import com.esop.repository.UserRecords
 import com.esop.schema.Order
 import com.esop.schema.User
-import com.esop.service.OrderService.Companion.buyOrders
-import com.esop.service.OrderService.Companion.sellOrders
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -15,12 +13,14 @@ import java.lang.Thread.sleep
 class OrderServiceTest {
 
     private lateinit var userRecords: UserRecords
+    private lateinit var orderRecords: OrderRecords
     private lateinit var orderService: OrderService
 
     @BeforeEach
     fun `It should create user`() {
         userRecords = UserRecords()
-        orderService = OrderService(userRecords)
+        orderRecords = OrderRecords()
+        orderService = OrderService(userRecords, orderRecords)
 
         val buyer1 = User("Sankaranarayanan", "M", "7550276216", "sankaranarayananm@sahaj.ai", "sankar")
         val buyer2 = User("Aditya", "Tiwari", "", "aditya@sahaj.ai", "aditya")
@@ -33,12 +33,6 @@ class OrderServiceTest {
         userRecords.addUser(seller2)
     }
 
-    @AfterEach
-    fun `It should clear the in memory data`() {
-        buyOrders.clear()
-        sellOrders.clear()
-    }
-
     @Test
     fun `It should place BUY order`() {
         //Arrange
@@ -48,7 +42,9 @@ class OrderServiceTest {
         orderService.placeOrder(buyOrder)
 
         //Assert
-        assertTrue(buyOrders.contains(buyOrder))
+        assertTrue {
+            buyOrder == orderRecords.getBuyOrder()
+        }
     }
 
     @Test
@@ -60,7 +56,9 @@ class OrderServiceTest {
         orderService.placeOrder(sellOrder)
 
         //Assert
-        assertTrue(sellOrders.contains(sellOrder))
+        assertTrue {
+            sellOrder == orderRecords.getSellOrder()
+        }
     }
 
     @Test
@@ -112,7 +110,10 @@ class OrderServiceTest {
         assertEquals(98, userRecords.getUser("kajal")!!.userWallet.getFreeMoney())
         assertEquals(98, userRecords.getUser("arun")!!.userWallet.getFreeMoney())
         assertEquals(50, userRecords.getUser("sankar")!!.userWallet.getLockedMoney())
-        assertEquals("PARTIAL", buyOrders[buyOrders.indexOf(buyOrderBySankar)].orderStatus)
+        assertEquals(
+            "PARTIAL",
+            userRecords.getUser("sankar")!!.orderList[userRecords.getUser("sankar")!!.orderList.indexOf(buyOrderBySankar)].orderStatus
+        )
         assertEquals(
             "COMPLETED",
             userRecords.getUser("kajal")!!.orderList[userRecords.getUser("kajal")!!.orderList.indexOf(sellOrderByKajal)].orderStatus
@@ -254,7 +255,10 @@ class OrderServiceTest {
         assertEquals(196, userRecords.getUser("kajal")!!.userWallet.getFreeMoney())
         assertEquals(0, userRecords.getUser("sankar")!!.userWallet.getFreeMoney())
         assertEquals(0, userRecords.getUser("sankar")!!.userWallet.getFreeMoney())
-        assertEquals("PARTIAL", sellOrders[sellOrders.indexOf(sellOrderByKajal)].orderStatus)
+        assertEquals(
+            "PARTIAL",
+            userRecords.getUser("kajal")!!.orderList[userRecords.getUser("kajal")!!.orderList.indexOf(sellOrderByKajal)].orderStatus
+        )
         assertEquals(
             "COMPLETED",
             userRecords.getUser("sankar")!!.orderList[userRecords.getUser("sankar")!!.orderList.indexOf(buyOrderBySankar)].orderStatus
