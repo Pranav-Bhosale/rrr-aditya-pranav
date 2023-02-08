@@ -1,12 +1,12 @@
 package com.esop.schema
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class OrderTest {
     @Test
     fun `it should update remaining quantity`() {
-        val buy = Order(10, "BUY", 10, "sankar")
+        val buy = Order(10, "BUY", 10, "sankar", null)
         val expectedRemainingQuantity = 5L
 
         buy.subtractFromRemainingQuantity(5L)
@@ -16,7 +16,7 @@ class OrderTest {
 
     @Test
     fun `it should set the status as completed`() {
-        val buy = Order(10, "BUY", 10, "sankar")
+        val buy = Order(10, "BUY", 10, "sankar", null)
         buy.remainingQuantity = 0
 
         buy.updateStatus()
@@ -26,7 +26,7 @@ class OrderTest {
 
     @Test
     fun `it should set the status as partial`() {
-        val buy = Order(10, "BUY", 10, "sankar")
+        val buy = Order(10, "BUY", 10, "sankar", null)
         buy.remainingQuantity = 5
 
         buy.updateStatus()
@@ -36,7 +36,7 @@ class OrderTest {
 
     @Test
     fun `it should add order log`() {
-        val buyOrder = Order(10, "BUY", 10, "Sankar")
+        val buyOrder = Order(10, "BUY", 10, "Sankar", null)
         val buyOrderLog = OrderFilledLog(
             10,
             10,

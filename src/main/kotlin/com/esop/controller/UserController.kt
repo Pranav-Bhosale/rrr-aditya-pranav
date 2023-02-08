@@ -86,7 +86,7 @@ class UserController {
         var errorList = mutableListOf<String>()
 
         val orderType: String = orderData.type.toString().uppercase()
-        val esopType: String
+        var esopType: String? = null
 
         if (orderType == "SELL") {
             esopType = orderData.esopType.toString().uppercase()
@@ -100,7 +100,8 @@ class UserController {
             orderData.quantity!!.toLong(),
             orderData.type.toString().uppercase(),
             orderData.price!!.toLong(),
-            userName
+            userName,
+            esopType
         )
 
         errorList = userService.orderCheckBeforePlace(order)

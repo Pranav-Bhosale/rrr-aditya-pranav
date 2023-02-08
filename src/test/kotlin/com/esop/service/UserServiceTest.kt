@@ -1,9 +1,9 @@
 package com.esop.service
 
 import com.esop.InventoryLimitExceededException
-import com.esop.WalletLimitExceededException
 import com.esop.MAX_INVENTORY_CAPACITY
 import com.esop.MAX_WALLET_CAPACITY
+import com.esop.WalletLimitExceededException
 import com.esop.dto.AddInventoryDTO
 import com.esop.dto.AddWalletDTO
 import com.esop.dto.UserCreationDTO
@@ -48,7 +48,7 @@ class UserServiceTest {
     @Test
     fun `should check user doesn't exist before placing Order`() {
         val order = Order(
-            quantity = 10, type = "BUY", price = 10, userName = "Sankar"
+            quantity = 10, type = "BUY", price = 10, userName = "Sankar", null
         )
         val expectedErrors = listOf("User doesn't exist.")
 
@@ -91,7 +91,7 @@ class UserServiceTest {
         userService.registerUser(user)
         userService.addingMoney(AddWalletDTO(price = 100L), userName = "sankar06")
         val order = Order(
-            quantity = 10, type = "BUY", price = 10, userName = "sankar06"
+            quantity = 10, type = "BUY", price = 10, userName = "sankar06", null
         )
 
         val actualErrors = userService.orderCheckBeforePlace(order)
@@ -105,7 +105,7 @@ class UserServiceTest {
         val user = UserCreationDTO("Sankar", "M", "+917550276216", "sankar@sahaj.ai", "sankar06")
         userService.registerUser(user)
         val order = Order(
-            quantity = 10, type = "BUY", price = 10, userName = "sankar06"
+            quantity = 10, type = "BUY", price = 10, userName = "sankar06", null
         )
         userService.addingMoney(AddWalletDTO(price = 99L), userName = "sankar06")
 
@@ -120,7 +120,7 @@ class UserServiceTest {
         val user = UserCreationDTO("Sankar", "M", "+917550276216", "sankar@sahaj.ai", "sankar06")
         userService.registerUser(user)
         val order = Order(
-            quantity = 10, type = "BUY", price = 10, userName = "sankar06"
+            quantity = 10, type = "BUY", price = 10, userName = "sankar06", null
         )
         userService.addingInventory(AddInventoryDTO(MAX_INVENTORY_CAPACITY, "NON_PERFORMANCE"), userName = "sankar06")
 
@@ -135,9 +135,8 @@ class UserServiceTest {
         userService.registerUser(user)
         userService.addingInventory(AddInventoryDTO(quantity = 10L), userName = "sankar06")
         val order = Order(
-            quantity = 10, type = "SELL", price = 10, userName = "sankar06"
+            quantity = 10, type = "SELL", price = 10, userName = "sankar06", "NON_PERFORMANCE"
         )
-        order.esopType = "NON_PERFORMANCE"
 
         val actualErrors = userService.orderCheckBeforePlace(order)
 
@@ -151,9 +150,8 @@ class UserServiceTest {
         userService.registerUser(user)
         userService.addingInventory(AddInventoryDTO(quantity = 10L), userName = "sankar06")
         val order = Order(
-            quantity = 29, type = "SELL", price = 10, userName = "sankar06"
+            quantity = 29, type = "SELL", price = 10, userName = "sankar06", "NON_PERFORMANCE"
         )
-        order.esopType = "NON_PERFORMANCE"
 
         val actualErrors = userService.orderCheckBeforePlace(order)
 
@@ -170,9 +168,9 @@ class UserServiceTest {
         val user = UserCreationDTO("Sankar", "M", "+917550276216", "sankar@sahaj.ai", "sankar06")
         userService.registerUser(user)
         val order = Order(
-            quantity = 10, type = "SELL", price = 10, userName = "sankar06"
+            quantity = 10, type = "SELL", price = 10, userName = "sankar06", "NON_PERFORMANCE"
         )
-        order.esopType = "NON_PERFORMANCE"
+
         userService.addingMoney(AddWalletDTO(MAX_WALLET_CAPACITY), userName = "sankar06")
 
         assertThrows<WalletLimitExceededException> {
@@ -186,9 +184,8 @@ class UserServiceTest {
         userService.registerUser(user)
         userService.addingInventory(AddInventoryDTO(quantity = 10L, esopType = "PERFORMANCE"), userName = "sankar06")
         val order = Order(
-            quantity = 10, type = "SELL", price = 10, userName = "sankar06"
+            quantity = 10, type = "SELL", price = 10, userName = "sankar06", "PERFORMANCE"
         )
-        order.esopType = "PERFORMANCE"
 
         val actualErrors = userService.orderCheckBeforePlace(order)
 
@@ -201,9 +198,8 @@ class UserServiceTest {
         val user = UserCreationDTO("Sankar", "M", "+917550276216", "sankar@sahaj.ai", "sankar06")
         userService.registerUser(user)
         val order = Order(
-            quantity = 29, type = "SELL", price = 10, userName = "sankar06"
+            quantity = 29, type = "SELL", price = 10, userName = "sankar06", "PERFORMANCE"
         )
-        order.esopType = "PERFORMANCE"
 
         val actualErrors = userService.orderCheckBeforePlace(order)
 
