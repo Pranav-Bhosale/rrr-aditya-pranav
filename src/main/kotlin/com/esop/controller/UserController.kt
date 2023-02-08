@@ -6,7 +6,6 @@ import com.esop.dto.AddInventoryDTO
 import com.esop.dto.AddWalletDTO
 import com.esop.dto.CreateOrderDTO
 import com.esop.dto.UserCreationDTO
-import com.esop.schema.Order
 import com.esop.service.*
 import com.fasterxml.jackson.core.JsonProcessingException
 import io.micronaut.core.convert.exceptions.ConversionErrorException
@@ -83,45 +82,15 @@ class UserController {
 
     @Post(uri = "/{userName}/order", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun order(userName: String, @Body @Valid orderData: CreateOrderDTO): Any? {
-        var errorList = mutableListOf<String>()
 
-        val orderType: String = orderData.type.toString().uppercase()
-        var esopType: String? = null
-
-        if (orderType == "SELL") {
-            esopType = orderData.esopType.toString().uppercase()
-            if (esopType != "PERFORMANCE" && esopType != "NON_PERFORMANCE") {
-                errorList.add("Invalid inventory type")
-                return HttpResponse.ok(mapOf("errors" to errorList))
-            }
-        }
-
-        val order = Order(
-            orderData.quantity!!.toLong(),
-            orderData.type.toString().uppercase(),
-            orderData.price!!.toLong(),
-            userName,
-            esopType
-        )
-
-        errorList = userService.orderCheckBeforePlace(order)
+        var errorList = orderService.validateOrderReq(userName, orderData)
         if (errorList.size > 0) {
             return HttpResponse.badRequest(mapOf("errors" to errorList))
         }
-        val userOrderOrErrors = orderService.placeOrder(order)
 
-        return if (userOrderOrErrors["orderId"] != null) {
-            HttpResponse.ok(
-                mapOf(
-                    "orderId" to userOrderOrErrors["orderId"],
-                    "quantity" to orderData.quantity,
-                    "type" to orderData.type,
-                    "price" to orderData.price
-                )
-            )
-        } else {
-            HttpResponse.badRequest(userOrderOrErrors)
-        }
+        val order = orderService.createOrder(userName, orderData)
+
+        return orderService.placeOrder(order)
     }
 
     @Get(uri = "/{userName}/accountInformation", produces = [MediaType.APPLICATION_JSON])

@@ -1,12 +1,15 @@
 package com.esop.service
 
 
+import com.esop.dto.CreateOrderDTO
 import com.esop.errors
 import com.esop.repository.OrderRecords
 import com.esop.repository.UserRecords
 import com.esop.schema.*
 import com.esop.schema.PlatformFee.Companion.addPlatformFee
 import jakarta.inject.Singleton
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 
@@ -14,6 +17,66 @@ private const val TWO_PERCENT = 0.02
 
 @Singleton
 class OrderService(private val userRecords: UserRecords, private val orderRecords: OrderRecords) {
+
+    fun validateOrderReq(userName: String, orderRequest: CreateOrderDTO): MutableList<String> {
+        val errorList = mutableListOf<String>()
+
+        if (!userRecords.checkIfUserExists(userName)) {
+            errorList.add("User doesn't exist.")
+            return errorList
+        }
+
+        val user = userRecords.getUser(userName)!!
+        val wallet = user.userWallet
+        val nonPerformanceInventory = user.userNonPerfInventory
+        val orderValue = orderRequest.price!! * orderRequest.quantity!!
+
+        if (orderRequest.type == "BUY") {
+            if(!user.checkBalance(orderValue))
+            {
+                errorList.add("Insufficient funds")
+                return errorList
+            }
+            nonPerformanceInventory.assertInventoryWillNotOverflowOnAdding(orderRequest.quantity!!)
+        } else if (orderRequest.type == "SELL") {
+            if(!user.checkInventory(orderRequest.esopType!!,orderRequest.quantity!!)){
+                errorList.add("Insufficient ${orderRequest.esopType!!.lowercase(Locale.getDefault())} inventory.")
+                return errorList
+            }
+            wallet.assertWalletWillNotOverflowOnAdding(orderValue)
+        }
+        return errorList
+    }
+    
+    fun createOrder(userName: String,orderRequest: CreateOrderDTO): Order{
+        val user = userRecords.getUser(userName)!!
+
+        var esopType: String? = null
+        if(orderRequest.type == "SELL"){
+            esopType = orderRequest.esopType!!
+        }
+
+        val order = Order(
+            orderRequest.quantity!!.toLong(),
+            orderRequest.type.toString().uppercase(),
+            orderRequest.price!!.toLong(),
+            userName,
+            esopType
+        )
+        order.orderID = orderRecords.generateOrderId()
+
+        userRecords.addOrderToUser(order)
+
+        if(order.getType() == "BUY") {
+            orderRecords.addBuyOrder(order)
+            user.lockAmount(order.getPrice() * order.getQuantity())
+        }else{
+            orderRecords.addSellOrder(order)
+            user.lockInventory(order.esopType!!,order.getQuantity())
+        }
+
+        return order
+    }
 
     private fun updateOrderDetails(
         currentTradeQuantity: Long,
@@ -54,16 +117,13 @@ class OrderService(private val userRecords: UserRecords, private val orderRecord
     }
 
 
-    fun placeOrder(order: Order): Map<String, Any> {
-        order.orderID = orderRecords.generateOrderId()
-
+    fun placeOrder(order: Order): Map<String, String> {
         if (order.getType() == "BUY") {
             executeBuyOrder(order)
         } else {
             executeSellOrder(order)
         }
-        userRecords.getUser(order.getUserName())?.orderList?.add(order)
-        return mapOf("orderId" to order.orderID)
+        return mapOf("message" to "Order placed successfully.")
     }
 
     private fun executeBuyOrder(buyOrder: Order) {
