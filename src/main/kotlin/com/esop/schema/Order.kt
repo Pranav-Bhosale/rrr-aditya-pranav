@@ -12,13 +12,14 @@ class Order(
     private var quantity: Long,
     private var type: String,
     private var price: Long,
-    private var userName: String
+    private var userName: String,
+    var esopType: String?
 ) {
     var timeStamp = System.currentTimeMillis()
     var orderStatus: String = "PENDING" // COMPLETED, PARTIAL, PENDING
     var orderFilledLogs: MutableList<OrderFilledLog> = mutableListOf()
     var orderID: Long = -1
-    var esopType = "NON_PERFORMANCE"
+
     var inventoryPriority = NONE
     var remainingQuantity = quantity
 

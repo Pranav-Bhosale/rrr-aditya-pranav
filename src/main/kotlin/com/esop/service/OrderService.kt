@@ -43,7 +43,7 @@ class OrderService(private val userRecords: UserRecords) {
         updateWalletBalances(sellAmount, platformFee, buyer, seller)
 
 
-        seller.transferLockedESOPsTo(buyer, EsopTransferRequest(sellerOrder.esopType, currentTradeQuantity))
+        seller.transferLockedESOPsTo(buyer, EsopTransferRequest(sellerOrder.esopType!!, currentTradeQuantity))
 
         val amountToBeReleased = (buyerOrder.getPrice() - sellerOrder.getPrice()) * (currentTradeQuantity)
         buyer.userWallet.moveMoneyFromLockedToFree(amountToBeReleased)
