@@ -1,5 +1,8 @@
 package com.esop.service
 
+import com.esop.dto.AddInventoryDTO
+import com.esop.dto.AddWalletDTO
+import com.esop.dto.CreateOrderDTO
 import com.esop.repository.OrderRecords
 import com.esop.repository.UserRecords
 import com.esop.schema.Order
@@ -10,16 +13,19 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 
+@Suppress("SameParameterValue")
 class OrderServiceTest {
 
     private lateinit var userRecords: UserRecords
     private lateinit var orderRecords: OrderRecords
     private lateinit var orderService: OrderService
+    private lateinit var userService: UserService
 
     @BeforeEach
     fun `It should create user`() {
         userRecords = UserRecords()
         orderRecords = OrderRecords()
+        userService = UserService(userRecords)
         orderService = OrderService(userRecords, orderRecords)
 
         val buyer1 = User("Sankaranarayanan", "M", "7550276216", "sankaranarayananm@sahaj.ai", "sankar")
@@ -33,6 +39,29 @@ class OrderServiceTest {
         userRecords.addUser(seller2)
     }
 
+    private fun addNonPerformanceInventoryToUser(userName: String, quantity: Long){
+        userService.addingInventory(AddInventoryDTO(quantity,"NON_PERFORMANCE"),userName)
+    }
+
+    private fun addPerformanceInventoryToUser(userName: String, quantity: Long){
+        userService.addingInventory(AddInventoryDTO(quantity,"PERFORMANCE"),userName)
+    }
+
+    private fun addMoneyToUser(userName: String, amount: Long){
+        userService.addingMoney(AddWalletDTO(amount),userName)
+    }
+
+    private fun createNonPerformanceSellOrderForUser(userName: String, quantity: Long, price: Long): Order{
+        return orderService.createOrder(userName, CreateOrderDTO("SELL", quantity, price,"NON_PERFORMANCE"))
+    }
+
+    private fun createPerformanceSellOrderForUser(userName: String, quantity: Long, price: Long): Order{
+        return orderService.createOrder(userName, CreateOrderDTO("SELL", quantity, price,"PERFORMANCE"))
+    }
+
+    private fun createBuyOrderForUser(userName: String, quantity: Long, price: Long): Order{
+        return orderService.createOrder(userName, CreateOrderDTO("BUY", quantity, price,null))
+    }
     @Test
     fun `It should place BUY order`() {
         //Arrange
@@ -64,14 +93,11 @@ class OrderServiceTest {
     @Test
     fun `It should match BUY order for existing SELL order`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrder = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrder)
+        addNonPerformanceInventoryToUser("kajal",50)
+        createNonPerformanceSellOrderForUser("kajal",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(100)
-        val buyOrder = Order(10, "BUY", 10, "sankar", "NON_PERFORMANCE")
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(100)
+        addMoneyToUser("sankar",100)
+        val buyOrder = createBuyOrderForUser("sankar",10,10)
 
         //Act
         orderService.placeOrder(buyOrder)
@@ -86,19 +112,14 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders followed by a BUY order where the BUY order is partial`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,10)
 
-        userRecords.getUser("arun")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "NON_PERFORMANCE")
-        userRecords.getUser("arun")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
+        addNonPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createNonPerformanceSellOrderForUser("arun",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(25, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(250)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",25,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -127,19 +148,14 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders followed by a BUY order where the BUY order is complete`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,10)
 
-        userRecords.getUser("arun")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "NON_PERFORMANCE")
-        userRecords.getUser("arun")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
+        addNonPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createNonPerformanceSellOrderForUser("arun",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(20, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(200)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",20,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -168,15 +184,11 @@ class OrderServiceTest {
     @Test
     fun `It should place 1 SELL orders followed by a BUY order where the BUY order is complete`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,10)
 
-
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(5, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(50)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",5,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -199,15 +211,12 @@ class OrderServiceTest {
     @Test
     fun `It should place 1 SELL orders followed by a BUY order where the BUY order is partial`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,10)
 
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(15, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(150)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",15,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -230,20 +239,15 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 BUY orders followed by a SELL order where the SELL order is partial`() {
         //Arrange
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(100)
-        val buyOrderBySankar = Order(10, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(100)
-        orderService.placeOrder(buyOrderBySankar)
+        addMoneyToUser("sankar",100)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",10,10)
 
 
-        userRecords.getUser("aditya")!!.userWallet.addMoneyToWallet(100)
-        val buyOrderByAditya = Order(10, "BUY", 10, "aditya", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(100)
-        orderService.placeOrder(buyOrderByAditya)
+        addMoneyToUser("aditya",100)
+        val buyOrderByAditya = createBuyOrderForUser("aditya",10,10)
 
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(25, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(25)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",25,10)
 
         //Act
         orderService.placeOrder(sellOrderByKajal)
@@ -272,19 +276,14 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 BUY orders followed by a SELL order where the SELL order is complete`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userWallet.addMoneyToWallet(100)
-        val buyOrderByKajal = Order(10, "BUY", 10, "kajal", null)
-        userRecords.getUser("kajal")!!.userWallet.moveMoneyFromFreeToLockedState(10 * 10)
-        orderService.placeOrder(buyOrderByKajal)
+        addMoneyToUser("kajal",100)
+        val buyOrderByKajal = createBuyOrderForUser("kajal",10,10)
 
-        userRecords.getUser("arun")!!.userWallet.addMoneyToWallet(100)
-        val buyOrderByArun = Order(10, "BUY", 10, "arun", null)
-        userRecords.getUser("arun")!!.userWallet.moveMoneyFromFreeToLockedState(10 * 10)
-        orderService.placeOrder(buyOrderByArun)
+        addMoneyToUser("arun",100)
+        val buyOrderByArun = createBuyOrderForUser("arun",10,10)
 
-        userRecords.getUser("sankar")!!.userNonPerfInventory.addESOPsToInventory(30)
-        val sellOrderBySankar = Order(20, "SELL", 10, "sankar", "NON_PERFORMANCE")
-        userRecords.getUser("sankar")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(20)
+        addNonPerformanceInventoryToUser("sankar",30)
+        val sellOrderBySankar = createNonPerformanceSellOrderForUser("sankar",20,10)
 
         //Act
         orderService.placeOrder(sellOrderBySankar)
@@ -318,14 +317,11 @@ class OrderServiceTest {
     @Test
     fun `It should match BUY order for existing SELL order for PERFORMANCE esop type`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userPerformanceInventory.addESOPsToInventory(50)
-        val sellOrder = Order(10, "SELL", 10, "kajal", "PERFORMANCE")
-        userRecords.getUser("kajal")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrder)
+        addPerformanceInventoryToUser("kajal",50)
+        createPerformanceSellOrderForUser("kajal",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(100)
-        val buyOrder = Order(10, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(100)
+        addMoneyToUser("sankar",100)
+        val buyOrder = createBuyOrderForUser("sankar",10,10)
 
         //Act
         orderService.placeOrder(buyOrder)
@@ -340,14 +336,11 @@ class OrderServiceTest {
     @Test
     fun `It should match SELL order for PERFORMANCE for existing BUY order`() {
         //Arrange
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(100)
-        val buyOrder = Order(10, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(100)
-        orderService.placeOrder(buyOrder)
+        addMoneyToUser("sankar",100)
+        createBuyOrderForUser("sankar",10,10)
 
-        userRecords.getUser("kajal")!!.userPerformanceInventory.addESOPsToInventory(50)
-        val sellOrder = Order(10, "SELL", 10, "kajal", "PERFORMANCE")
-        userRecords.getUser("kajal")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
+        addPerformanceInventoryToUser("kajal",50)
+        val sellOrder = createPerformanceSellOrderForUser("kajal",10,10)
 
         //Act
         orderService.placeOrder(sellOrder)
@@ -362,14 +355,11 @@ class OrderServiceTest {
     @Test
     fun `It should match SELL order for existing BUY order where SELL order is complete`() {
         //Arrange
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(200)
-        val buyOrder = Order(20, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(200)
-        orderService.placeOrder(buyOrder)
+        addMoneyToUser("sankar",200)
+        createBuyOrderForUser("sankar",20,10)
 
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrder = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrder = createNonPerformanceSellOrderForUser("kajal",10,10)
 
         //Act
         orderService.placeOrder(sellOrder)
@@ -384,19 +374,14 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders where one SELL order is of PERFORMANCE esop type and other is of NON-PERFORMANCE esop type followed by a BUY order where the BUY order is complete`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,10)
 
-        userRecords.getUser("arun")!!.userPerformanceInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "PERFORMANCE")
-        userRecords.getUser("arun")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
+        addPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createPerformanceSellOrderForUser("arun",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(20, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(200)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",20,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -425,19 +410,14 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders of PERFORMANCE esop type followed by a BUY order where the BUY order is complete`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userPerformanceInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "PERFORMANCE")
-        userRecords.getUser("kajal")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByKajal)
+        addPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createPerformanceSellOrderForUser("kajal",10, 10)
 
-        userRecords.getUser("arun")!!.userPerformanceInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "PERFORMANCE")
-        userRecords.getUser("arun")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
+        addPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createPerformanceSellOrderForUser("arun",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(20, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(200)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",20,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -466,20 +446,16 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders of PERFORMANCE esop type followed by a BUY order where higher timestamp order placed first`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userPerformanceInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "PERFORMANCE")
-        userRecords.getUser("kajal")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
+        addPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createPerformanceSellOrderForUser("kajal", 10, 10)
 
         sleep(10)
-        userRecords.getUser("arun")!!.userPerformanceInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "PERFORMANCE")
-        userRecords.getUser("arun")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
+        addPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createPerformanceSellOrderForUser("arun",10,10)
         orderService.placeOrder(sellOrderByKajal)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(20, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(200)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",20,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -508,20 +484,15 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders of NON-PERFORMANCE esop type followed by a BUY order where higher timestamp order placed first`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,10)
 
         sleep(10)
-        userRecords.getUser("arun")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "NON_PERFORMANCE")
-        userRecords.getUser("arun")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createNonPerformanceSellOrderForUser("arun",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(250)
-        val buyOrderBySankar = Order(20, "BUY", 10, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(200)
+        addMoneyToUser("sankar",250)
+        val buyOrderBySankar = createBuyOrderForUser("sankar",20,10)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -550,20 +521,14 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders of NON-PERFORMANCE esop type followed by a BUY order where SELL order price is different`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 20, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,20)
 
-        userRecords.getUser("arun")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "NON_PERFORMANCE")
-        userRecords.getUser("arun")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
+        addNonPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createNonPerformanceSellOrderForUser("arun",10,10)
 
-
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(400)
-        val buyOrderBySankar = Order(20, "BUY", 20, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(400)
+        addMoneyToUser("sankar", 400)
+        val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 20)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
@@ -592,19 +557,14 @@ class OrderServiceTest {
     @Test
     fun `It should place 2 SELL orders of NON-PERFORMANCE esop type followed by a BUY order where lower SELL order price is placed first`() {
         //Arrange
-        userRecords.getUser("kajal")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByKajal = Order(10, "SELL", 20, "kajal", "NON_PERFORMANCE")
-        userRecords.getUser("kajal")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
+        addNonPerformanceInventoryToUser("kajal",50)
+        val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal",10,20)
 
-        userRecords.getUser("arun")!!.userNonPerfInventory.addESOPsToInventory(50)
-        val sellOrderByArun = Order(10, "SELL", 10, "arun", "NON_PERFORMANCE")
-        userRecords.getUser("arun")!!.userNonPerfInventory.moveESOPsFromFreeToLockedState(10)
-        orderService.placeOrder(sellOrderByArun)
-        orderService.placeOrder(sellOrderByKajal)
+        addNonPerformanceInventoryToUser("arun",50)
+        val sellOrderByArun = createNonPerformanceSellOrderForUser("arun",10,10)
 
-        userRecords.getUser("sankar")!!.userWallet.addMoneyToWallet(400)
-        val buyOrderBySankar = Order(20, "BUY", 20, "sankar", null)
-        userRecords.getUser("sankar")!!.userWallet.moveMoneyFromFreeToLockedState(400)
+        addMoneyToUser("sankar", 400)
+        val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 20)
 
         //Act
         orderService.placeOrder(buyOrderBySankar)
