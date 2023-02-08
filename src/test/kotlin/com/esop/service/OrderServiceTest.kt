@@ -14,8 +14,8 @@ import java.lang.Thread.sleep
 
 class OrderServiceTest {
 
-    private lateinit var userRecords:UserRecords
-    private lateinit var orderService:OrderService
+    private lateinit var userRecords: UserRecords
+    private lateinit var orderService: OrderService
 
     @BeforeEach
     fun `It should create user`() {
@@ -297,7 +297,9 @@ class OrderServiceTest {
 
         assertEquals(
             "COMPLETED",
-            userRecords.getUser("sankar")!!.orderList[userRecords.getUser("sankar")!!.orderList.indexOf(sellOrderBySankar)].orderStatus
+            userRecords.getUser("sankar")!!.orderList[userRecords.getUser("sankar")!!.orderList.indexOf(
+                sellOrderBySankar
+            )].orderStatus
         )
         assertEquals(
             "COMPLETED",
@@ -387,7 +389,7 @@ class OrderServiceTest {
 
         userRecords.getUser("arun")!!.userPerformanceInventory.addESOPsToInventory(50)
         val sellOrderByArun = Order(10, "SELL", 10, "arun")
-        sellOrderByArun.esopType="PERFORMANCE"
+        sellOrderByArun.esopType = "PERFORMANCE"
         userRecords.getUser("arun")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
         orderService.placeOrder(sellOrderByArun)
 
@@ -424,13 +426,13 @@ class OrderServiceTest {
         //Arrange
         userRecords.getUser("kajal")!!.userPerformanceInventory.addESOPsToInventory(50)
         val sellOrderByKajal = Order(10, "SELL", 10, "kajal")
-        sellOrderByKajal.esopType="PERFORMANCE"
+        sellOrderByKajal.esopType = "PERFORMANCE"
         userRecords.getUser("kajal")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
         orderService.placeOrder(sellOrderByKajal)
 
         userRecords.getUser("arun")!!.userPerformanceInventory.addESOPsToInventory(50)
         val sellOrderByArun = Order(10, "SELL", 10, "arun")
-        sellOrderByArun.esopType="PERFORMANCE"
+        sellOrderByArun.esopType = "PERFORMANCE"
         userRecords.getUser("arun")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
         orderService.placeOrder(sellOrderByArun)
 
@@ -467,13 +469,13 @@ class OrderServiceTest {
         //Arrange
         userRecords.getUser("kajal")!!.userPerformanceInventory.addESOPsToInventory(50)
         val sellOrderByKajal = Order(10, "SELL", 10, "kajal")
-        sellOrderByKajal.esopType="PERFORMANCE"
+        sellOrderByKajal.esopType = "PERFORMANCE"
         userRecords.getUser("kajal")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
 
         sleep(10)
         userRecords.getUser("arun")!!.userPerformanceInventory.addESOPsToInventory(50)
         val sellOrderByArun = Order(10, "SELL", 10, "arun")
-        sellOrderByArun.esopType="PERFORMANCE"
+        sellOrderByArun.esopType = "PERFORMANCE"
         userRecords.getUser("arun")!!.userPerformanceInventory.moveESOPsFromFreeToLockedState(10)
         orderService.placeOrder(sellOrderByArun)
         orderService.placeOrder(sellOrderByKajal)

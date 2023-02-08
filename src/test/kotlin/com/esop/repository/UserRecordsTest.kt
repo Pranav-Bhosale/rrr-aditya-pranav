@@ -84,7 +84,7 @@ class UserRecordsTest {
     }
 
     @Test
-    fun `check if phone number exists`(){
+    fun `check if phone number exists`() {
         val phoneNumber = "+911231231231"
         val userRecords = UserRecords()
         userRecords.addPhoneNumber(phoneNumber)
@@ -95,7 +95,7 @@ class UserRecordsTest {
     }
 
     @Test
-    fun `check if phone number does not exists`(){
+    fun `check if phone number does not exists`() {
         val phoneNumber = "+911231231231"
         val userRecords = UserRecords()
 
@@ -105,7 +105,7 @@ class UserRecordsTest {
     }
 
     @Test
-    fun `add phone number`(){
+    fun `add phone number`() {
         val phoneNumber = "+911231231231"
         val userRecords = UserRecords()
 
