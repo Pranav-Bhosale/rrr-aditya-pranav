@@ -1,6 +1,6 @@
 package com.esop.service
 
-import com.esop.constant.errors
+import com.esop.errors
 import com.esop.dto.AddInventoryDTO
 import com.esop.dto.AddWalletDTO
 import com.esop.dto.UserCreationDTO

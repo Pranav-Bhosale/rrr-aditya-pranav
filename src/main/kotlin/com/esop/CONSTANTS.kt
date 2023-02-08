@@ -1,4 +1,4 @@
-package com.esop.constant
+package com.esop
 
 
 val errors = mapOf(
