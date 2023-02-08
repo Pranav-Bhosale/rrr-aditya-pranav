@@ -41,6 +41,7 @@ class Configuration {
     @Value("\${app.platform-fee-percentage}")
     private var platformFeePercentage: Double = 0.0
 
+    @Suppress("unused")
     @PostConstruct
     fun checkConfigurationIsValid() {
         checkMaxInventoryLimitIsValid()
