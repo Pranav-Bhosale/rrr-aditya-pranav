@@ -86,9 +86,11 @@ class UserController {
         if (errorList.isNotEmpty())
             return HttpResponse.badRequest(mapOf("errors" to errorList))
 
-        val order = orderService.createOrder(userName, orderData)
+        val order = orderService.placeOrder(userName, orderData)
 
-        return orderService.executeOrder(order)
+        val response = orderService.executeOrder(order)
+
+        return HttpResponse.ok(mapOf("message" to response))
     }
 
     @Get(uri = "/{userName}/accountInformation", produces = [MediaType.APPLICATION_JSON])

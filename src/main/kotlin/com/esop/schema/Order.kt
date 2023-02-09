@@ -9,6 +9,7 @@ enum class InventoryPriority(val priority: Int) {
 }
 
 class Order(
+    private var orderId: Long,
     private var quantity: Long,
     private var type: String,
     private var price: Long,
@@ -18,7 +19,7 @@ class Order(
     var timeStamp = System.currentTimeMillis()
     var orderStatus: String = "PENDING" // COMPLETED, PARTIAL, PENDING
     var orderFilledLogs: MutableList<OrderFilledLog> = mutableListOf()
-    var orderID: Long = -1
+
 
     var inventoryPriority = NONE
     var remainingQuantity = quantity
@@ -42,12 +43,19 @@ class Order(
         return price
     }
 
+    fun getOrderValue(): Long {
+        return price*quantity
+    }
     fun getType(): String {
         return type
     }
 
     fun getUserName(): String {
         return userName
+    }
+
+    fun getOrderId(): Long {
+        return orderId
     }
 
 

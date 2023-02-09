@@ -51,28 +51,27 @@ class OrderServiceTest {
     }
 
     private fun createNonPerformanceSellOrderForUser(userName: String, quantity: Long, price: Long): Order {
-        return orderService.createOrder(userName, CreateOrderDTO("SELL", quantity, price, "NON_PERFORMANCE"))
+        return orderService.placeOrder(userName, CreateOrderDTO("SELL", quantity, price, "NON_PERFORMANCE"))
     }
 
     private fun createPerformanceSellOrderForUser(userName: String, quantity: Long, price: Long): Order {
-        return orderService.createOrder(userName, CreateOrderDTO("SELL", quantity, price, "PERFORMANCE"))
+        return orderService.placeOrder(userName, CreateOrderDTO("SELL", quantity, price, "PERFORMANCE"))
     }
 
     private fun createBuyOrderForUser(userName: String, quantity: Long, price: Long): Order {
-        return orderService.createOrder(userName, CreateOrderDTO("BUY", quantity, price, null))
+        return orderService.placeOrder(userName, CreateOrderDTO("BUY", quantity, price, null))
     }
 
     @Test
     fun `It should place BUY order`() {
         //Arrange
         val buyOrder = createBuyOrderForUser("sankar",10,10)
-
+        val sellOrder=createNonPerformanceSellOrderForUser("sankar",10,10)
         //Act
-        orderService.executeOrder(buyOrder)
-
+        val matchBuyOrder = orderRecords.getMatchBuyOrder(sellOrder)
         //Assert
         assertTrue {
-            buyOrder == orderRecords.getBuyOrder()
+            buyOrder == matchBuyOrder
         }
     }
 
@@ -80,13 +79,12 @@ class OrderServiceTest {
     fun `It should place SELL order`() {
         //Arrange
         val sellOrder = createNonPerformanceSellOrderForUser("sankar",10,10)
-
+        val buyOrder = createBuyOrderForUser("sankar",10,10)
         //Act
-        orderService.executeOrder(sellOrder)
-
+        val matchSellOrder = orderRecords.getMatchSellOrder(buyOrder)
         //Assert
         assertTrue {
-            sellOrder == orderRecords.getSellOrder()
+            sellOrder == matchSellOrder
         }
     }
 
