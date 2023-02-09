@@ -1,7 +1,6 @@
 package com.esop.schema
 
 import com.esop.dto.AddInventoryDTO
-import com.esop.dto.AddWalletDTO
 
 class User(
     var firstName: String,
@@ -15,28 +14,18 @@ class User(
     val userPerformanceInventory: Inventory = Inventory(type = "PERFORMANCE")
     val orderList: ArrayList<Order> = ArrayList()
 
-    fun addToWallet(walletData: AddWalletDTO): String {
-        userWallet.addMoneyToWallet(walletData.price!!)
-        return "${walletData.price} amount added to account."
+    fun addToWallet(amountToBeAdded: Long) {
+        userWallet.addMoneyToWallet(amountToBeAdded)
     }
 
     fun addToInventory(inventoryData: AddInventoryDTO): String {
-        if (inventoryData.esopType.toString().uppercase() == "NON_PERFORMANCE") {
+        if (inventoryData.esopType == "NON_PERFORMANCE") {
             userNonPerfInventory.addESOPsToInventory(inventoryData.quantity!!)
-            return "${inventoryData.quantity} Non-Performance ESOPs added to account."
-        } else if (inventoryData.esopType.toString().uppercase() == "PERFORMANCE") {
+        } else if (inventoryData.esopType == "PERFORMANCE") {
             userPerformanceInventory.addESOPsToInventory(inventoryData.quantity!!)
             return "${inventoryData.quantity} Performance ESOPs added to account."
         }
         return "None"
-    }
-
-    fun lockPerformanceInventory(quantity: Long): String {
-        return userPerformanceInventory.moveESOPsFromFreeToLockedState(quantity)
-    }
-
-    fun lockNonPerformanceInventory(quantity: Long): String {
-        return userNonPerfInventory.moveESOPsFromFreeToLockedState(quantity)
     }
 
     fun checkBalance(amountToBeChecked: Long): Boolean {
@@ -47,7 +36,7 @@ class User(
         userWallet.moveMoneyFromFreeToLockedState(price)
     }
 
-    private fun getInventory(type: String): Inventory {
+    fun getInventory(type: String): Inventory {
         if (type == "PERFORMANCE") return userPerformanceInventory
         return userNonPerfInventory
     }
@@ -61,16 +50,15 @@ class User(
         orderList.add(order)
     }
 
-    fun checkInventory(inventoryType: String, esopsToBeChecked: Long): Boolean{
-        if(inventoryType == "PERFORMANCE") return userPerformanceInventory.checkInventory(esopsToBeChecked)
+    fun checkInventory(inventoryType: String, esopsToBeChecked: Long): Boolean {
+        if (inventoryType == "PERFORMANCE") return userPerformanceInventory.checkInventory(esopsToBeChecked)
         return userNonPerfInventory.checkInventory(esopsToBeChecked)
     }
 
-    fun lockInventory(inventoryType: String, esopsToBeChecked: Long){
-        if(inventoryType == "PERFORMANCE"){
+    fun lockInventory(inventoryType: String, esopsToBeChecked: Long) {
+        if (inventoryType == "PERFORMANCE") {
             userPerformanceInventory.moveESOPsFromFreeToLockedState(esopsToBeChecked)
-        }
-        else{
+        } else {
             userNonPerfInventory.moveESOPsFromFreeToLockedState(esopsToBeChecked)
         }
     }

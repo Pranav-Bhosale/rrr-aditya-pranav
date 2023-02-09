@@ -82,7 +82,7 @@ class UserController {
 
     @Post(uri = "/{userName}/order", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun order(userName: String, @Body @Valid orderData: CreateOrderDTO): Any? {
-        var errorList = orderService.validateOrderReq(userName, orderData)
+        val errorList = orderService.validateOrderRequest(userName, orderData)
         if (errorList.isNotEmpty())
             return HttpResponse.badRequest(mapOf("errors" to errorList))
 
@@ -106,25 +106,26 @@ class UserController {
         consumes = [MediaType.APPLICATION_JSON],
         produces = [MediaType.APPLICATION_JSON]
     )
-    fun addInventory(userName: String, @Body @Valid body: AddInventoryDTO): HttpResponse<*> {
-        val newInventory = this.userService.addingInventory(body, userName)
+    fun addInventory(userName: String, @Body @Valid inventoryRequest: AddInventoryDTO): HttpResponse<*> {
+        val errorList = userService.validateInventoryRequest(userName, inventoryRequest)
+        if (errorList.isNotEmpty())
+            return HttpResponse.badRequest(mapOf("errors" to errorList))
 
-        if (newInventory["error"] != null) {
-            return HttpResponse.badRequest(newInventory)
-        }
-        return HttpResponse.ok(newInventory)
+        val response = userService.addingInventoryToUser(userName, inventoryRequest)
+
+        return HttpResponse.ok(mapOf("message" to response))
     }
 
 
     @Post(uri = "{userName}/wallet", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
-    fun addWallet(userName: String, @Body @Valid body: AddWalletDTO): HttpResponse<*> {
-        val addedMoney = this.userService.addingMoney(body, userName)
+    fun addWallet(userName: String, @Body @Valid walletRequest: AddWalletDTO): HttpResponse<*> {
+        val errorList = userService.validateWalletRequest(userName, walletRequest)
+        if (errorList.isNotEmpty())
+            return HttpResponse.badRequest(mapOf("errors" to errorList))
 
-        if (addedMoney["error"] != null) {
-            return HttpResponse.badRequest(addedMoney)
-        }
-        return HttpResponse.ok(addedMoney)
+        val response = userService.addMoneyToUser(userName, walletRequest.price!!)
 
+        return HttpResponse.ok(mapOf("message" to response))
     }
 
     @Get(uri = "/{userName}/orderHistory", produces = [MediaType.APPLICATION_JSON])

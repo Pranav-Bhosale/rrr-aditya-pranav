@@ -3,6 +3,7 @@ package com.esop
 import com.esop.schema.Inventory
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 @MicronautTest
@@ -45,9 +46,10 @@ class InventoryTest {
     fun `It should throw error when the total inventory is greater than the inventory limit`() {
         val inventory = Inventory(freeInventory = 1, lockedInventory = 0, type = "PERFORMANCE")
 
-        Assertions.assertThrows(
-            InventoryLimitExceededException::class.java,
-            fun() { inventory.addESOPsToInventory(MAX_INVENTORY_CAPACITY) })
+        val response = inventory.checkInventoryOverflow(MAX_INVENTORY_CAPACITY)
+
+        assertTrue(response.size == 1)
+        assertTrue(response[0] == "Inventory Limit exceeded")
     }
 
 

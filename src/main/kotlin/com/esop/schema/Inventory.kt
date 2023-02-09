@@ -1,8 +1,6 @@
 package com.esop.schema
 
-import com.esop.InventoryLimitExceededException
 import com.esop.MAX_INVENTORY_CAPACITY
-import io.micronaut.context.annotation.Factory
 import java.util.*
 
 class Inventory(
@@ -15,18 +13,16 @@ class Inventory(
         return freeInventory + lockedInventory
     }
 
-    private fun willInventoryOverflowOnAdding(quantity: Long): Boolean {
-        return quantity + totalESOPQuantity() > MAX_INVENTORY_CAPACITY
-    }
-
-    fun assertInventoryWillNotOverflowOnAdding(quantity: Long) {
-        if (willInventoryOverflowOnAdding(quantity)) throw InventoryLimitExceededException()
-    }
-
     fun addESOPsToInventory(esopsToBeAdded: Long) {
-        assertInventoryWillNotOverflowOnAdding(esopsToBeAdded)
-
         this.freeInventory = this.freeInventory + esopsToBeAdded
+    }
+
+    fun checkInventoryOverflow(esopsToBeAddedInInventory: Long): List<String> {
+        val modifiedInventory = totalESOPQuantity() + esopsToBeAddedInInventory
+        if (modifiedInventory > MAX_INVENTORY_CAPACITY) {
+            return listOf("Inventory Limit exceeded")
+        }
+        return emptyList()
     }
 
     fun moveESOPsFromFreeToLockedState(esopsToBeLocked: Long): String {
@@ -50,8 +46,8 @@ class Inventory(
         this.lockedInventory = this.lockedInventory - esopsToBeRemoved
     }
 
-    fun checkInventory(esopsToBeChecked: Long): Boolean{
-        if(freeInventory < esopsToBeChecked) return false
+    fun checkInventory(esopsToBeChecked: Long): Boolean {
+        if (freeInventory < esopsToBeChecked) return false
         return true
     }
 }
