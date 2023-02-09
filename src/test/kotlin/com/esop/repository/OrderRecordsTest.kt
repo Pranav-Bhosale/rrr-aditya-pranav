@@ -15,15 +15,15 @@ class OrderRecordsTest {
     }
 
     private fun createBuyOrder(quantity: Long, price: Long): Order {
-        return Order(quantity = quantity, type = "BUY", price = price, userName = "abc", esopType = null)
+        return Order(orderRecords.generateOrderId(),quantity = quantity, type = "BUY", price = price, userName = "abc", esopType = null)
     }
 
     private fun createPerformanceSellOrder(quantity: Long, price: Long): Order {
-        return Order(quantity = quantity, type = "SELL", price = price, userName = "abc", esopType = "PERFORMANCE")
+        return Order(orderRecords.generateOrderId(),quantity = quantity, type = "SELL", price = price, userName = "abc", esopType = "PERFORMANCE")
     }
 
     private fun createNonPerformanceSellOrder(quantity: Long, price: Long): Order {
-        return Order(quantity = quantity, type = "SELL", price = price, userName = "abc", esopType = "NON_PERFORMANCE")
+        return Order(orderRecords.generateOrderId(),quantity = quantity, type = "SELL", price = price, userName = "abc", esopType = "NON_PERFORMANCE")
     }
 
     @Test
@@ -37,7 +37,7 @@ class OrderRecordsTest {
 
     @Test
     fun `should return sell order`() {
-        val sellOrder = Order(10, "SELL", 10, "sankar", "NON_PERFORMANCE")
+        val sellOrder = createNonPerformanceSellOrder(10,10)
         orderRecords.addOrder(sellOrder)
         val expectedOrderType = "SELL"
 
@@ -55,7 +55,7 @@ class OrderRecordsTest {
 
     @Test
     fun `should return buy order`() {
-        val buyOrder = Order(10, "BUY", 10, "sankar", null)
+        val buyOrder = createBuyOrder(10,10)
         orderRecords.addOrder(buyOrder)
         val expectedOrderType = "BUY"
 
@@ -73,7 +73,7 @@ class OrderRecordsTest {
 
     @Test
     fun `it should remove buy order`() {
-        val buyOrder = Order(10, "BUY", 10, "sankar", null)
+        val buyOrder = createBuyOrder(10,10)
         orderRecords.addOrder(buyOrder)
         val response = orderRecords.getBuyOrder()
 
@@ -85,7 +85,7 @@ class OrderRecordsTest {
 
     @Test
     fun `it should remove sell order`() {
-        val sellOrder = Order(10, "SELL", 10, "sankar", "NON_PERFORMANCE")
+        val sellOrder = createNonPerformanceSellOrder(10,10)
         orderRecords.addOrder(sellOrder)
         val response = orderRecords.getSellOrder()
 

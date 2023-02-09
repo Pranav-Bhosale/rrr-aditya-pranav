@@ -82,22 +82,10 @@ class OrderService(
         return emptyList()
     }
 
-    fun createOrder(userName: String, orderRequest: CreateOrderDTO): Order {
+    fun placeOrder(userName: String, orderRequest: CreateOrderDTO): Order {
         val user = userRecords.getUser(userName)!!
 
-        var esopType: String? = null
-        if (orderRequest.type == "SELL") {
-            esopType = orderRequest.esopType!!
-        }
-
-        val order = Order(
-            orderRequest.quantity,
-            orderRequest.type.uppercase(),
-            orderRequest.price,
-            userName,
-            esopType
-        )
-        order.orderID = orderRecords.generateOrderId()
+        val order = createOrder(orderRequest, userName)
 
         orderRecords.addOrder(order)
         userService.addOrderToUser(order)
@@ -109,6 +97,22 @@ class OrderService(
         }
 
         return order
+    }
+
+    private fun createOrder(orderRequest: CreateOrderDTO, userName: String): Order {
+        var esopType: String? = null
+        if (orderRequest.type == "SELL") {
+            esopType = orderRequest.esopType!!
+        }
+
+        return Order(
+            orderRecords.generateOrderId(),
+            orderRequest.quantity,
+            orderRequest.type.uppercase(),
+            orderRequest.price,
+            userName,
+            esopType
+        )
     }
 
     private fun updateOrderDetails(
@@ -240,7 +244,7 @@ class OrderService(
         for (orders in orderDetails) {
             orderHistory.add(
                 History(
-                    orders.orderID,
+                    orders.getOrderId(),
                     orders.getQuantity(),
                     orders.getType(),
                     orders.getPrice(),

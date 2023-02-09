@@ -86,7 +86,7 @@ class UserController {
         if (errorList.isNotEmpty())
             return HttpResponse.badRequest(mapOf("errors" to errorList))
 
-        val order = orderService.createOrder(userName, orderData)
+        val order = orderService.placeOrder(userName, orderData)
 
         return orderService.executeOrder(order)
     }

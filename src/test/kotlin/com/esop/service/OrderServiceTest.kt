@@ -51,15 +51,15 @@ class OrderServiceTest {
     }
 
     private fun createNonPerformanceSellOrderForUser(userName: String, quantity: Long, price: Long): Order {
-        return orderService.createOrder(userName, CreateOrderDTO("SELL", quantity, price, "NON_PERFORMANCE"))
+        return orderService.placeOrder(userName, CreateOrderDTO("SELL", quantity, price, "NON_PERFORMANCE"))
     }
 
     private fun createPerformanceSellOrderForUser(userName: String, quantity: Long, price: Long): Order {
-        return orderService.createOrder(userName, CreateOrderDTO("SELL", quantity, price, "PERFORMANCE"))
+        return orderService.placeOrder(userName, CreateOrderDTO("SELL", quantity, price, "PERFORMANCE"))
     }
 
     private fun createBuyOrderForUser(userName: String, quantity: Long, price: Long): Order {
-        return orderService.createOrder(userName, CreateOrderDTO("BUY", quantity, price, null))
+        return orderService.placeOrder(userName, CreateOrderDTO("BUY", quantity, price, null))
     }
 
     @Test
