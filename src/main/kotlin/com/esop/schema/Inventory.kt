@@ -2,6 +2,7 @@ package com.esop.schema
 
 import com.esop.InventoryLimitExceededException
 import com.esop.MAX_INVENTORY_CAPACITY
+import io.micronaut.context.annotation.Factory
 import java.util.*
 
 class Inventory(
@@ -47,5 +48,10 @@ class Inventory(
 
     fun removeESOPsFromLockedState(esopsToBeRemoved: Long) {
         this.lockedInventory = this.lockedInventory - esopsToBeRemoved
+    }
+
+    fun checkInventory(esopsToBeChecked: Long): Boolean{
+        if(freeInventory < esopsToBeChecked) return false
+        return true
     }
 }

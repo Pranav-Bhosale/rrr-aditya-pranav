@@ -1,6 +1,6 @@
 package com.esop.schema
 
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -43,10 +43,19 @@ class WalletTest {
         val wallet = Wallet()
         wallet.addMoneyToWallet(100)
 
-        val response = wallet.moveMoneyFromFreeToLockedState(150)
+        val response = wallet.checkBalance(150)
 
-        val expectedResult = "Insufficient funds"
-        assertEquals(expectedResult, response)
+        assertFalse(response)
+    }
+
+    @Test
+    fun `it should check for sufficient funds`() {
+        val wallet = Wallet()
+        wallet.addMoneyToWallet(100)
+
+        val response = wallet.checkBalance(90)
+
+        assertTrue(response)
     }
 
 }

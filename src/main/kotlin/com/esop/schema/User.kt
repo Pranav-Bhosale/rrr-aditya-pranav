@@ -39,8 +39,12 @@ class User(
         return userNonPerfInventory.moveESOPsFromFreeToLockedState(quantity)
     }
 
-    fun lockAmount(price: Long): String {
-        return userWallet.moveMoneyFromFreeToLockedState(price)
+    fun checkBalance(amountToBeChecked: Long): Boolean {
+        return userWallet.checkBalance(amountToBeChecked)
+    }
+
+    fun lockAmount(price: Long) {
+        userWallet.moveMoneyFromFreeToLockedState(price)
     }
 
     private fun getInventory(type: String): Inventory {
@@ -51,5 +55,23 @@ class User(
     fun transferLockedESOPsTo(buyer: User, esopTransferData: EsopTransferRequest) {
         this.getInventory(esopTransferData.esopType).removeESOPsFromLockedState(esopTransferData.currentTradeQuantity)
         buyer.getInventory("NON_PERFORMANCE").addESOPsToInventory(esopTransferData.currentTradeQuantity)
+    }
+
+    fun addOrder(order: Order) {
+        orderList.add(order)
+    }
+
+    fun checkInventory(inventoryType: String, esopsToBeChecked: Long): Boolean{
+        if(inventoryType == "PERFORMANCE") return userPerformanceInventory.checkInventory(esopsToBeChecked)
+        return userNonPerfInventory.checkInventory(esopsToBeChecked)
+    }
+
+    fun lockInventory(inventoryType: String, esopsToBeChecked: Long){
+        if(inventoryType == "PERFORMANCE"){
+            userPerformanceInventory.moveESOPsFromFreeToLockedState(esopsToBeChecked)
+        }
+        else{
+            userNonPerfInventory.moveESOPsFromFreeToLockedState(esopsToBeChecked)
+        }
     }
 }

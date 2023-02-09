@@ -25,13 +25,9 @@ class Wallet {
         this.freeMoney = this.freeMoney + amountToBeAdded
     }
 
-    fun moveMoneyFromFreeToLockedState(amountToBeLocked: Long): String {
-        if (this.freeMoney < amountToBeLocked) {
-            return "Insufficient funds"
-        }
+    fun moveMoneyFromFreeToLockedState(amountToBeLocked: Long) {
         this.freeMoney = this.freeMoney - amountToBeLocked
         this.lockedMoney = this.lockedMoney + amountToBeLocked
-        return "SUCCESS"
     }
 
     fun getFreeMoney(): Long {
@@ -49,5 +45,10 @@ class Wallet {
     fun moveMoneyFromLockedToFree(amount: Long) {
         removeMoneyFromLockedState(amount)
         addMoneyToWallet(amount)
+    }
+
+    fun checkBalance(amountToBeChecked: Long): Boolean {
+        if( freeMoney < amountToBeChecked) return false
+        return true
     }
 }

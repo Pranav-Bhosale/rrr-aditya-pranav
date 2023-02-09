@@ -1,5 +1,6 @@
 package com.esop.repository
 
+import com.esop.schema.Order
 import com.esop.schema.User
 import jakarta.inject.Singleton
 
@@ -35,5 +36,9 @@ class UserRecords {
 
     fun checkIfPhoneNumberExists(phoneNumber: String): Boolean {
         return phoneNumbers.contains(phoneNumber)
+    }
+
+    fun addOrderToUser(order: Order) {
+        getUser(order.getUserName())?.addOrder(order)
     }
 }
