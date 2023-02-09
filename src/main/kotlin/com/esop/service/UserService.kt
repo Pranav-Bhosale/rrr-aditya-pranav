@@ -32,7 +32,6 @@ class UserService(private val userRecords: UserRecords) {
         user?.lockInventory(inventoryType,quantity)
     }
 
-
     fun registerUser(userData: UserCreationDTO): Map<String, String> {
         val user = User(
             userData.firstName!!.trim(),
@@ -108,7 +107,6 @@ class UserService(private val userRecords: UserRecords) {
 
         return "${inventoryData.quantity!!} ${inventoryData.esopType!!.lowercase()} esops added to account."
     }
-
     fun validateWalletRequest(userName: String, walletRequest: AddWalletDTO): List<String> {
         val errorList = mutableListOf<String>()
         errorList.addAll(checkIfUserExists(userName))

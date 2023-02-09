@@ -119,7 +119,6 @@ class OrderRecordsTest {
         createNonPerformanceSellOrder(10, 10)
         val buyOrder = createBuyOrder(10, 10)
         val response = orderRecords.getMatchSellOrder(buyOrder)
-
         response?.orderStatus = "COMPLETED"
         orderRecords.removeOrderIfFilled(response!!)
 
@@ -131,6 +130,7 @@ class OrderRecordsTest {
         val nonPerformanceSellOrder = createNonPerformanceSellOrder(15, 10)
         val performanceSellOrder = createPerformanceSellOrder(15, 10)
         val buyOrder = createBuyOrder(10, 10)
+
         orderRecords.addOrder(nonPerformanceSellOrder)
         orderRecords.addOrder(performanceSellOrder)
 
@@ -147,6 +147,7 @@ class OrderRecordsTest {
         val nonPerformanceSellOrder1 = createNonPerformanceSellOrder(10, 10)
         val nonPerformanceSellOrder2 = createNonPerformanceSellOrder(10, 15)
         val buyOrder = createBuyOrder(10, 20)
+
         orderRecords.addOrder(nonPerformanceSellOrder1)
         orderRecords.addOrder(nonPerformanceSellOrder2)
 
@@ -204,7 +205,6 @@ class OrderRecordsTest {
         sleep(10)
         createNonPerformanceSellOrder(10, 10)
         val buyOrder = createBuyOrder(20, 10)
-
         val response1 = orderRecords.getMatchSellOrder(buyOrder)
         if (response1 != null) {
             response1.orderStatus = "COMPLETED"
