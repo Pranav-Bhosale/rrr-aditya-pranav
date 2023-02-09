@@ -1,7 +1,6 @@
 package com.esop.schema
 
 import com.esop.MAX_WALLET_CAPACITY
-import com.esop.WalletLimitExceededException
 
 class Wallet {
     private var freeMoney: Long = 0
@@ -11,17 +10,15 @@ class Wallet {
         return freeMoney + lockedMoney
     }
 
-    private fun willWalletOverflowOnAdding(amount: Long): Boolean {
-        return amount + totalMoneyInWallet() > MAX_WALLET_CAPACITY
-    }
-
-    fun assertWalletWillNotOverflowOnAdding(amount: Long) {
-        if (willWalletOverflowOnAdding(amount)) throw WalletLimitExceededException()
+    fun checkWalletOverflow(amountToBeAddedInWallet: Long): List<String> {
+        val modifiedWalletBalance = totalMoneyInWallet() + amountToBeAddedInWallet
+        if (modifiedWalletBalance > MAX_WALLET_CAPACITY) {
+            return listOf("Wallet Limit exceeded")
+        }
+        return emptyList()
     }
 
     fun addMoneyToWallet(amountToBeAdded: Long) {
-        assertWalletWillNotOverflowOnAdding(amountToBeAdded)
-
         this.freeMoney = this.freeMoney + amountToBeAdded
     }
 
@@ -48,7 +45,7 @@ class Wallet {
     }
 
     fun checkBalance(amountToBeChecked: Long): Boolean {
-        if( freeMoney < amountToBeChecked) return false
+        if (freeMoney < amountToBeChecked) return false
         return true
     }
 }

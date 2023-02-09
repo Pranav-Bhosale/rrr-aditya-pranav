@@ -69,21 +69,51 @@ class UserService(private val userRecords: UserRecords) {
         )
     }
 
-
-    fun addingInventory(inventoryData: AddInventoryDTO, userName: String): Map<String, Any> {
-        val errorList = checkIfUserExists(userName)
+    fun validateInventoryRequest(userName: String, inventoryRequest: AddInventoryDTO): List<String> {
+        val errorList = mutableListOf<String>()
+        errorList.addAll(checkIfUserExists(userName))
         if (errorList.isNotEmpty()) {
-            return mapOf("error" to errorList)
+            return errorList
         }
-        return mapOf("message" to userRecords.getUser(userName)!!.addToInventory(inventoryData))
+
+        val user = userRecords.getUser(userName)!!
+        val inventory = user.getInventory(inventoryRequest.esopType!!)
+        errorList.addAll(inventory.checkInventoryOverflow(inventoryRequest.quantity!!))
+        if (errorList.isNotEmpty()) {
+            return errorList
+        }
+        return emptyList()
     }
 
-    fun addingMoney(walletData: AddWalletDTO, userName: String): Map<String, Any> {
-        val errorList = checkIfUserExists(userName)
-        if (errorList.isNotEmpty()) {
-            return mapOf("error" to errorList)
-        }
+    fun addingInventoryToUser(userName: String, inventoryData: AddInventoryDTO): String {
         val user = userRecords.getUser(userName)!!
-        return mapOf("message" to user.addToWallet(walletData))
+
+        user.addToInventory(inventoryData)
+
+        return "${inventoryData.quantity!!} ${inventoryData.esopType!!.lowercase()} esops added to account."
+    }
+
+    fun validateWalletRequest(userName: String, walletRequest: AddWalletDTO): List<String> {
+        val errorList = mutableListOf<String>()
+        errorList.addAll(checkIfUserExists(userName))
+        if (errorList.isNotEmpty()) {
+            return errorList
+        }
+
+        val user = userRecords.getUser(userName)!!
+        val userWallet = user.userWallet
+        errorList.addAll(userWallet.checkWalletOverflow(walletRequest.price!!))
+        if (errorList.isNotEmpty()) {
+            return errorList
+        }
+        return emptyList()
+    }
+
+    fun addMoneyToUser(userName: String, amountToBeAdded: Long): String {
+        val user = userRecords.getUser(userName)!!
+
+        user.addToWallet(amountToBeAdded)
+
+        return "$amountToBeAdded amount added to account."
     }
 }

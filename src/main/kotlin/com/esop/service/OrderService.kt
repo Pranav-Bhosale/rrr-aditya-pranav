@@ -8,7 +8,6 @@ import com.esop.schema.*
 import com.esop.schema.PlatformFee.Companion.addPlatformFee
 import jakarta.inject.Singleton
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 
@@ -21,7 +20,7 @@ class OrderService(
     private val orderRecords: OrderRecords
 ) {
 
-    fun validateOrderReq(userName: String, orderRequest: CreateOrderDTO): MutableList<String> {
+    fun validateOrderRequest(userName: String, orderRequest: CreateOrderDTO): MutableList<String> {
         val errorList = mutableListOf<String>()
 
         errorList.addAll(userService.checkIfUserExists(userName))
@@ -29,38 +28,43 @@ class OrderService(
             return errorList
 
         val user = userRecords.getUser(userName)!!
-        val wallet = user.userWallet
-        val nonPerformanceInventory = user.userNonPerfInventory
-        val orderValue = orderRequest.price!! * orderRequest.quantity!!
-
         if (orderRequest.type == "BUY") {
-            validateBuyOrderReq(errorList, user, orderValue, nonPerformanceInventory, orderRequest)
+            errorList.addAll(validateBuyOrderRequest(user, orderRequest))
         } else if (orderRequest.type == "SELL") {
-            validateSellOrderReq(errorList, user, orderRequest, wallet, orderValue)
+            errorList.addAll(validateSellOrderRequest(user, orderRequest))
         }
+
         return errorList
     }
 
-    private fun validateSellOrderReq(
-        errorList: MutableList<String>,
+    private fun validateSellOrderRequest(
         user: User,
-        orderRequest: CreateOrderDTO,
-        wallet: Wallet,
-        orderValue: Long
-    ) {
+        orderRequest: CreateOrderDTO
+    ): List<String> {
+        val errorList = mutableListOf<String>()
+
         errorList.addAll(checkForInsufficientInventory(user, orderRequest))
-        wallet.assertWalletWillNotOverflowOnAdding(orderValue)
+
+        val wallet = user.userWallet
+        val orderValue = orderRequest.price!! * orderRequest.quantity!!
+        errorList.addAll(wallet.checkWalletOverflow(orderValue))
+
+        return errorList
     }
 
-    private fun validateBuyOrderReq(
-        errorList: MutableList<String>,
+    private fun validateBuyOrderRequest(
         user: User,
-        orderValue: Long,
-        nonPerformanceInventory: Inventory,
         orderRequest: CreateOrderDTO
-    ) {
+    ): List<String> {
+        val errorList = mutableListOf<String>()
+
+        val orderValue = orderRequest.price!! * orderRequest.quantity!!
         errorList.addAll(checkForInsufficientFunds(user, orderValue))
-        nonPerformanceInventory.assertInventoryWillNotOverflowOnAdding(orderRequest.quantity!!)
+
+        val inventory = user.getInventory("NON_PERFORMANCE")
+        errorList.addAll(inventory.checkInventoryOverflow(orderRequest.quantity!!))
+
+        return errorList
     }
 
     private fun checkForInsufficientInventory(

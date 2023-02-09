@@ -1,7 +1,6 @@
 package com.esop.service
 
 import com.esop.dto.AddInventoryDTO
-import com.esop.dto.AddWalletDTO
 import com.esop.dto.CreateOrderDTO
 import com.esop.repository.OrderRecords
 import com.esop.repository.UserRecords
@@ -40,15 +39,15 @@ class OrderServiceTest {
     }
 
     private fun addNonPerformanceInventoryToUser(userName: String, quantity: Long) {
-        userService.addingInventory(AddInventoryDTO(quantity, "NON_PERFORMANCE"), userName)
+        userService.addingInventoryToUser(userName, AddInventoryDTO(quantity, "NON_PERFORMANCE"))
     }
 
     private fun addPerformanceInventoryToUser(userName: String, quantity: Long) {
-        userService.addingInventory(AddInventoryDTO(quantity, "PERFORMANCE"), userName)
+        userService.addingInventoryToUser(userName, AddInventoryDTO(quantity, "PERFORMANCE"))
     }
 
     private fun addMoneyToUser(userName: String, amount: Long) {
-        userService.addingMoney(AddWalletDTO(amount), userName)
+        userService.addMoneyToUser(userName, amount)
     }
 
     private fun createNonPerformanceSellOrderForUser(userName: String, quantity: Long, price: Long): Order {
