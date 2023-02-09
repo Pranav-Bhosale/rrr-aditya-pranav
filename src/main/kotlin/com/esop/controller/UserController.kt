@@ -88,7 +88,9 @@ class UserController {
 
         val order = orderService.placeOrder(userName, orderData)
 
-        return orderService.executeOrder(order)
+        val response = orderService.executeOrder(order)
+
+        return HttpResponse.ok(mapOf("message" to response))
     }
 
     @Get(uri = "/{userName}/accountInformation", produces = [MediaType.APPLICATION_JSON])

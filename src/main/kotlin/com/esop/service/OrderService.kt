@@ -15,17 +15,14 @@ private const val TWO_PERCENT = 0.02
 
 @Singleton
 class OrderService(
-    private val userService: UserService,
-    private val userRecords: UserRecords,
-    private val orderRecords: OrderRecords
+    private val userService: UserService, private val userRecords: UserRecords, private val orderRecords: OrderRecords
 ) {
 
     fun validateOrderRequest(userName: String, orderRequest: CreateOrderDTO): MutableList<String> {
         val errorList = mutableListOf<String>()
 
         errorList.addAll(userService.checkIfUserExists(userName))
-        if (errorList.isNotEmpty())
-            return errorList
+        if (errorList.isNotEmpty()) return errorList
 
         val user = userRecords.getUser(userName)!!
         if (orderRequest.type == "BUY") {
@@ -38,8 +35,7 @@ class OrderService(
     }
 
     private fun validateSellOrderRequest(
-        user: User,
-        orderRequest: CreateOrderDTO
+        user: User, orderRequest: CreateOrderDTO
     ): List<String> {
         val errorList = mutableListOf<String>()
 
@@ -52,8 +48,7 @@ class OrderService(
     }
 
     private fun validateBuyOrderRequest(
-        user: User,
-        orderRequest: CreateOrderDTO
+        user: User, orderRequest: CreateOrderDTO
     ): List<String> {
         val errorList = mutableListOf<String>()
 
@@ -66,8 +61,7 @@ class OrderService(
     }
 
     private fun checkForInsufficientInventory(
-        user: User,
-        orderRequest: CreateOrderDTO
+        user: User, orderRequest: CreateOrderDTO
     ): List<String> {
         if (!user.checkInventory(orderRequest)) {
             return listOf("Insufficient ${orderRequest.esopType!!.lowercase(Locale.getDefault())} inventory.")
@@ -102,9 +96,8 @@ class OrderService(
     }
 
     private fun createOrder(orderRequest: CreateOrderDTO, userName: String): Order {
-        val esopType: String? =
-            if (orderRequest.type == "SELL") orderRequest.esopType!!
-            else null
+        val esopType: String? = if (orderRequest.type == "SELL") orderRequest.esopType!!
+        else null
 
         return Order(
             orderRecords.generateOrderId(),
@@ -117,9 +110,7 @@ class OrderService(
     }
 
     private fun updateOrderDetails(
-        currentTradeQuantity: Long,
-        sellerOrder: Order,
-        buyerOrder: Order
+        currentTradeQuantity: Long, sellerOrder: Order, buyerOrder: Order
     ) {
         // Deduct money of quantity taken from buyer
         val sellAmount = sellerOrder.getPrice() * (currentTradeQuantity)
@@ -128,8 +119,7 @@ class OrderService(
         var platformFee = 0L
 
 
-        if (sellerOrder.esopType == "NON_PERFORMANCE")
-            platformFee = round(sellAmount * TWO_PERCENT).toLong()
+        if (sellerOrder.esopType == "NON_PERFORMANCE") platformFee = round(sellAmount * TWO_PERCENT).toLong()
 
         updateWalletBalances(sellAmount, platformFee, buyer, seller)
 
@@ -142,10 +132,7 @@ class OrderService(
     }
 
     private fun updateWalletBalances(
-        sellAmount: Long,
-        platformFee: Long,
-        buyer: User,
-        seller: User
+        sellAmount: Long, platformFee: Long, buyer: User, seller: User
     ) {
         val adjustedSellAmount = sellAmount - platformFee
         addPlatformFee(platformFee)
@@ -154,41 +141,22 @@ class OrderService(
         seller.userWallet.addMoneyToWallet(adjustedSellAmount)
     }
 
-
-    fun executeOrder(order: Order): Map<String, String> {
-        if (order.getType() == "BUY") {
-            executeBuyOrder(order)
-        } else {
-            executeSellOrder(order)
+    fun executeOrder(currentOrder: Order): String {
+        while (currentOrder.orderStatus != "COMPLETED") {
+            val matchOrder = getBestMatchOrder(currentOrder) ?: break
+            performOrderMatching(currentOrder, matchOrder)
         }
-        return mapOf("message" to "Order placed successfully.")
+        return "Order placed successfully."
     }
 
-    private fun executeBuyOrder(buyOrder: Order) {
-        var sellOrder = orderRecords.getSellOrder()
-        if (sellOrder != null) {
-            while (buyOrder.orderStatus != "COMPLETED" && sellOrder!!.getPrice() <= buyOrder.getPrice()) {
-                performOrderMatching(sellOrder, buyOrder)
-                sellOrder = orderRecords.getSellOrder()
-                if (sellOrder == null)
-                    break
-            }
-        }
+    private fun getBestMatchOrder(order: Order): Order? {
+        return if (order.getType() == "BUY") orderRecords.getMatchSellOrder(buyOrder = order)
+        else orderRecords.getMatchBuyOrder(sellOrder = order)
     }
 
-    private fun executeSellOrder(sellOrder: Order) {
-        var buyOrder = orderRecords.getBuyOrder()
-        if (buyOrder != null) {
-            while (sellOrder.orderStatus != "COMPLETED" && sellOrder.getPrice() <= buyOrder!!.getPrice()) {
-                performOrderMatching(sellOrder, buyOrder)
-                buyOrder = orderRecords.getBuyOrder()
-                if (buyOrder == null)
-                    break
-            }
-        }
-    }
-
-    private fun performOrderMatching(sellOrder: Order, buyOrder: Order) {
+    private fun performOrderMatching(currentOrder: Order, matchOrder: Order) {
+        val buyOrder = identifyBuyOrder(currentOrder, matchOrder)
+        val sellOrder = identifySellOrder(currentOrder, matchOrder)
         val orderExecutionPrice = sellOrder.getPrice()
         val orderExecutionQuantity = min(sellOrder.remainingQuantity, buyOrder.remainingQuantity)
 
@@ -201,34 +169,31 @@ class OrderService(
         createOrderFilledLogs(orderExecutionQuantity, orderExecutionPrice, sellOrder, buyOrder)
 
         updateOrderDetails(
-            orderExecutionQuantity,
-            sellOrder,
-            buyOrder
+            orderExecutionQuantity, sellOrder, buyOrder
         )
 
         orderRecords.removeOrderIfFilled(buyOrder)
         orderRecords.removeOrderIfFilled(sellOrder)
     }
 
+    private fun identifyBuyOrder(currentOrder: Order, matchOrder: Order): Order {
+        if (currentOrder.getType() == "BUY") return currentOrder
+        return matchOrder
+    }
+
+    private fun identifySellOrder(currentOrder: Order, matchOrder: Order): Order {
+        if (currentOrder.getType() == "SELL") return currentOrder
+        return matchOrder
+    }
+
     private fun createOrderFilledLogs(
-        orderExecutionQuantity: Long,
-        orderExecutionPrice: Long,
-        sellOrder: Order,
-        buyOrder: Order
+        orderExecutionQuantity: Long, orderExecutionPrice: Long, sellOrder: Order, buyOrder: Order
     ) {
         val buyOrderLog = OrderFilledLog(
-            orderExecutionQuantity,
-            orderExecutionPrice,
-            null,
-            sellOrder.getUserName(),
-            null
+            orderExecutionQuantity, orderExecutionPrice, null, sellOrder.getUserName(), null
         )
         val sellOrderLog = OrderFilledLog(
-            orderExecutionQuantity,
-            orderExecutionPrice,
-            sellOrder.esopType,
-            null,
-            buyOrder.getUserName()
+            orderExecutionQuantity, orderExecutionPrice, sellOrder.esopType, null, buyOrder.getUserName()
         )
 
         buyOrder.addOrderFilledLogs(buyOrderLog)
@@ -237,8 +202,7 @@ class OrderService(
 
     fun orderHistory(userName: String): Any {
         val userErrors: List<String> = userService.checkIfUserExists(userName)
-        if (userErrors.isNotEmpty())
-            return mapOf("error" to userErrors)
+        if (userErrors.isNotEmpty()) return mapOf("error" to userErrors)
         val orderDetails = userRecords.getUser(userName)!!.orderList
         val orderHistory = ArrayList<History>()
 

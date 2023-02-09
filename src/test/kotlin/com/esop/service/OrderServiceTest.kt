@@ -66,13 +66,12 @@ class OrderServiceTest {
     fun `It should place BUY order`() {
         //Arrange
         val buyOrder = createBuyOrderForUser("sankar",10,10)
-
+        val sellOrder=createNonPerformanceSellOrderForUser("sankar",10,10)
         //Act
-        orderService.executeOrder(buyOrder)
-
+        val matchBuyOrder = orderRecords.getMatchBuyOrder(sellOrder)
         //Assert
         assertTrue {
-            buyOrder == orderRecords.getBuyOrder()
+            buyOrder == matchBuyOrder
         }
     }
 
@@ -80,13 +79,12 @@ class OrderServiceTest {
     fun `It should place SELL order`() {
         //Arrange
         val sellOrder = createNonPerformanceSellOrderForUser("sankar",10,10)
-
+        val buyOrder = createBuyOrderForUser("sankar",10,10)
         //Act
-        orderService.executeOrder(sellOrder)
-
+        val matchSellOrder = orderRecords.getMatchSellOrder(buyOrder)
         //Assert
         assertTrue {
-            sellOrder == orderRecords.getSellOrder()
+            sellOrder == matchSellOrder
         }
     }
 

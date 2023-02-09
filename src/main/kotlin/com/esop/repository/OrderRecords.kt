@@ -22,7 +22,7 @@ class OrderRecords {
     }
 
     fun removeOrderIfFilled(order: Order) {
-        if(order.orderStatus == "COMPLETED") {
+        if (order.orderStatus == "COMPLETED") {
             if (order.getType() == "BUY") {
                 buyOrders.remove(order)
             } else if (order.getType() == "SELL") {
@@ -31,47 +31,53 @@ class OrderRecords {
         }
     }
 
-    fun getBuyOrder(): Order? {
-        if (buyOrders.size > 0) {
-            var sortedBuyOrders =
-                buyOrders.sortedWith(compareByDescending<Order> { it.getPrice() }.thenBy { it.timeStamp })
-            return sortedBuyOrders[0]
+    fun getMatchBuyOrder(sellOrder: Order): Order? {
+        if (buyOrders.isNotEmpty()) {
+            val sortedBuyOrders = sortBuyOrders()
+            val matchBuyOrder = sortedBuyOrders[0]
+            if (matchBuyOrder.getPrice() >= sellOrder.getPrice())
+                return matchBuyOrder
         }
         return null
     }
 
-    fun getSellOrder(): Order? {
-        if (sellOrders.size > 0) {
-            var sortedSellOrders = sortAscending()
-            return sortedSellOrders[0]
+    fun getMatchSellOrder(buyOrder: Order): Order? {
+        if (sellOrders.isNotEmpty()) {
+            val sortedSellOrders = sortSellOrders()
+            val matchSellOrder = sortedSellOrders[0]
+            if (matchSellOrder.getPrice() <= buyOrder.getPrice())
+                return matchSellOrder
         }
         return null
     }
 
-    private fun sortAscending(): List<Order> {
+    private fun sortBuyOrders() =
+        buyOrders.sortedWith(compareByDescending<Order> { it.getPrice() }.thenBy { it.timeStamp })
+
+    private fun sortSellOrders(): List<Order> {
         return sellOrders.sortedWith(object : Comparator<Order> {
-            override fun compare(o1: Order, o2: Order): Int {
+            override fun compare(order1: Order, order2: Order): Int {
 
-                if (o1.inventoryPriority.priority != o2.inventoryPriority.priority)
-                    return o1.inventoryPriority.priority - o2.inventoryPriority.priority
+                if (order1.inventoryPriority.priority != order2.inventoryPriority.priority)
+                    return order1.inventoryPriority.priority - order2.inventoryPriority.priority
 
-                if (o1.inventoryPriority.priority == 1) {
-                    if (o1.getPrice() == o2.getPrice()) {
-                        if (o1.timeStamp < o2.timeStamp)
+                if (order1.inventoryPriority.priority == 1) {
+                    if (order1.getPrice() == order2.getPrice()) {
+                        if (order1.timeStamp < order2.timeStamp)
                             return -1
                         return 1
                     }
-                    if (o1.getPrice() < o2.getPrice())
+                    if (order1.getPrice() < order2.getPrice())
                         return -1
                     return 1
                 }
 
-                if (o1.getPrice() == o2.getPrice()) {
-                    if (o1.timeStamp < o2.timeStamp)
+                if (order1.getPrice() == order2.getPrice()) {
+                    if (order1.timeStamp < order2.timeStamp)
                         return -1
                     return 1
                 }
-                if (o1.getPrice() < o2.getPrice())
+                if (order1.getPrice() < order2.getPrice())
                     return -1
                 return 1
             }
