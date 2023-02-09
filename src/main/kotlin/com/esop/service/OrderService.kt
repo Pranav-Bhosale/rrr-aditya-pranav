@@ -46,8 +46,7 @@ class OrderService(
         errorList.addAll(checkForInsufficientInventory(user, orderRequest))
 
         val wallet = user.userWallet
-        val orderValue = orderRequest.price!! * orderRequest.quantity!!
-        errorList.addAll(wallet.checkWalletOverflow(orderValue))
+        errorList.addAll(wallet.checkWalletOverflow(orderRequest.orderValue))
 
         return errorList
     }
@@ -58,11 +57,10 @@ class OrderService(
     ): List<String> {
         val errorList = mutableListOf<String>()
 
-        val orderValue = orderRequest.price!! * orderRequest.quantity!!
-        errorList.addAll(checkForInsufficientFunds(user, orderValue))
+        errorList.addAll(checkForInsufficientFunds(user, orderRequest))
 
         val inventory = user.getInventory("NON_PERFORMANCE")
-        errorList.addAll(inventory.checkInventoryOverflow(orderRequest.quantity!!))
+        errorList.addAll(inventory.checkInventoryOverflow(orderRequest.quantity))
 
         return errorList
     }
@@ -71,14 +69,14 @@ class OrderService(
         user: User,
         orderRequest: CreateOrderDTO
     ): List<String> {
-        if (!user.checkInventory(orderRequest.esopType!!, orderRequest.quantity!!)) {
+        if (!user.checkInventory(orderRequest)) {
             return listOf("Insufficient ${orderRequest.esopType!!.lowercase(Locale.getDefault())} inventory.")
         }
         return emptyList()
     }
 
-    private fun checkForInsufficientFunds(user: User, orderValue: Long): List<String> {
-        if (!user.checkBalance(orderValue)) {
+    private fun checkForInsufficientFunds(user: User, orderRequest: CreateOrderDTO): List<String> {
+        if (!user.checkBalance(orderRequest.orderValue)) {
             return listOf("Insufficient funds")
         }
         return emptyList()
@@ -93,9 +91,9 @@ class OrderService(
         }
 
         val order = Order(
-            orderRequest.quantity!!.toLong(),
-            orderRequest.type.toString().uppercase(),
-            orderRequest.price!!.toLong(),
+            orderRequest.quantity,
+            orderRequest.type.uppercase(),
+            orderRequest.price,
             userName,
             esopType
         )

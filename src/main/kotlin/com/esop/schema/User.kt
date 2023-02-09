@@ -1,6 +1,7 @@
 package com.esop.schema
 
 import com.esop.dto.AddInventoryDTO
+import com.esop.dto.CreateOrderDTO
 
 class User(
     var firstName: String,
@@ -50,9 +51,9 @@ class User(
         orderList.add(order)
     }
 
-    fun checkInventory(inventoryType: String, esopsToBeChecked: Long): Boolean {
-        if (inventoryType == "PERFORMANCE") return userPerformanceInventory.checkInventory(esopsToBeChecked)
-        return userNonPerfInventory.checkInventory(esopsToBeChecked)
+    fun checkInventory(orderRequest: CreateOrderDTO): Boolean {
+        if (orderRequest.esopType == "PERFORMANCE") return userPerformanceInventory.checkInventory(orderRequest.quantity)
+        return userNonPerfInventory.checkInventory(orderRequest.quantity)
     }
 
     fun lockInventory(inventoryType: String, esopsToBeChecked: Long) {
