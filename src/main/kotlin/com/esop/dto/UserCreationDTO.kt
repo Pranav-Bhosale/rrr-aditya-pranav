@@ -19,25 +19,25 @@ class UserCreationDTO @JsonCreator constructor(
     @field:NotBlank(message = "First Name can not be missing or empty.")
     @field:Size(max = 30, message = "First Name should not exceed 30 characters.")
     @field:Pattern(regexp = "($ALPHABET_SEQUENCE_REGEX| *)", message = "First Name can only contain alphabets.")
-    var firstName: String? = null,
+    var firstName: String,
 
     @JsonProperty("lastName")
     @field:NotBlank(message = "Last Name can not be missing or empty.")
     @field:Size(max = 30, message = "Last Name should not exceed 30 characters")
     @field:Pattern(regexp = "($ALPHABET_SEQUENCE_REGEX| *)", message = "Last Name can only contain alphabets")
-    var lastName: String? = null,
+    var lastName: String,
 
     @JsonProperty("phoneNumber")
     @field:NotBlank(message = "Phone Number can not be missing or empty.")
     @field:PhoneNumberValidator
     @field:PhoneNumberAlreadyExists
-    var phoneNumber: String? = null,
+    var phoneNumber: String,
 
     @JsonProperty("email")
     @field:NotBlank(message = "Email can not be missing or empty.")
     @field:EmailValidator
     @field:EmailAlreadyExistsValidator
-    var email: String? = null,
+    var email: String,
 
     @JsonProperty("username")
     @field:NotBlank(message = "User Name can not be missing or empty.")
@@ -47,5 +47,5 @@ class UserCreationDTO @JsonCreator constructor(
         "User Name should only consist alphabets, numbers or underscore(s) and it must start with an alphabet."
     )
     @field:UsernameValidator
-    var username: String? = null
+    var username: String
 )

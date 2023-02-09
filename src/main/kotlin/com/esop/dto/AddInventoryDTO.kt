@@ -18,7 +18,7 @@ class AddInventoryDTO @JsonCreator constructor(
         MAX_INVENTORY_CAPACITY,
         message = "quantity can't exceed maximum inventory capacity of $MAX_INVENTORY_CAPACITY"
     )
-    var quantity: Long? = null,
+    var quantity: Long,
 
     @JsonProperty("esopType")
     @field:Pattern(
