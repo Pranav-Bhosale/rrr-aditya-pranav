@@ -27,7 +27,7 @@ class UserServiceTest {
         userRecords = UserRecords()
         orderRecords = OrderRecords()
         userService = UserService(userRecords)
-        orderService = OrderService(userRecords, orderRecords)
+        orderService = OrderService(userService, userRecords, orderRecords)
     }
 
 
@@ -176,7 +176,7 @@ class UserServiceTest {
         val order = CreateOrderDTO(
             quantity = 10, type = "SELL", price = 10, esopType = "NON_PERFORMANCE"
         )
-        userService.addingInventory(AddInventoryDTO(20,"NON_PERFORMANCE"), userName = "sankar06")
+        userService.addingInventory(AddInventoryDTO(20, "NON_PERFORMANCE"), userName = "sankar06")
         userService.addingMoney(AddWalletDTO(MAX_WALLET_CAPACITY), userName = "sankar06")
 
         assertThrows<WalletLimitExceededException> {
