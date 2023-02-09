@@ -131,23 +131,52 @@ class OrderService(
 
         val orderExecutionDetails = createOrderExecutionDetails(sellOrder, buyOrder)
 
+        val platformFee = handlePlatformFee(sellOrder, orderExecutionDetails)
+
+        handleResources(orderExecutionDetails, platformFee, buyOrder, sellOrder)
+
+        updateOrderStatus(buyOrder, orderExecutionDetails, sellOrder)
+
+        addOrderExecutionDetails(orderExecutionDetails, sellOrder, buyOrder)
+
+        removeOrdersFromOrderRecordsIfFilled(buyOrder, sellOrder)
+    }
+
+    private fun removeOrdersFromOrderRecordsIfFilled(buyOrder: Order, sellOrder: Order) {
+        orderRecords.removeOrderIfFilled(buyOrder)
+        orderRecords.removeOrderIfFilled(sellOrder)
+    }
+
+    private fun updateOrderStatus(
+        buyOrder: Order,
+        orderExecutionDetails: OrderExecutionDetailsRequest,
+        sellOrder: Order
+    ) {
+        modifyOrderState(buyOrder, orderExecutionDetails)
+        modifyOrderState(sellOrder, orderExecutionDetails)
+    }
+
+    private fun handleResources(
+        orderExecutionDetails: OrderExecutionDetailsRequest,
+        platformFee: Long,
+        buyOrder: Order,
+        sellOrder: Order
+    ) {
+        transferResources(orderExecutionDetails, platformFee)
+        releaseResources(buyOrder, sellOrder, orderExecutionDetails)
+    }
+
+    private fun handlePlatformFee(
+        sellOrder: Order,
+        orderExecutionDetails: OrderExecutionDetailsRequest
+    ): Long {
         val platformFee = PlatformFee.calculatePlatformFee(
             sellOrder.esopType!!,
             orderExecutionDetails.totalOrderExecutionValue
         )
 
         addPlatformFee(platformFee)
-
-        transferResources(orderExecutionDetails, platformFee)
-        releaseResources(buyOrder, sellOrder, orderExecutionDetails)
-
-        modifyOrderState(buyOrder, orderExecutionDetails)
-        modifyOrderState(sellOrder, orderExecutionDetails)
-
-        addOrderExecutionDetails(orderExecutionDetails, sellOrder, buyOrder)
-
-        orderRecords.removeOrderIfFilled(buyOrder)
-        orderRecords.removeOrderIfFilled(sellOrder)
+        return platformFee
     }
 
     private fun transferResources(orderExecutionDetails: OrderExecutionDetailsRequest, platformFee: Long) {
