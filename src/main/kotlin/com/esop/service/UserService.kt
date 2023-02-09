@@ -11,34 +11,33 @@ import jakarta.inject.Singleton
 @Singleton
 class UserService(private val userRecords: UserRecords) {
 
-    fun addOrderToUser(order: Order){
+    fun addOrderToUser(order: Order) {
         userRecords.addOrder(order)
     }
+
     fun checkIfUserExists(userName: String): List<String> {
         if (!userRecords.checkIfUserExists(userName))
             return listOf("User doesn't exist.")
         return emptyList()
     }
 
-    fun lockWalletForUser(userName: String,amountToBeLocked: Long)
-    {
-       val user=userRecords.getUser(userName)
+    fun lockWalletForUser(userName: String, amountToBeLocked: Long) {
+        val user = userRecords.getUser(userName)
         user?.lockAmount(amountToBeLocked)
     }
 
-    fun lockInventoryForUser(userName: String, inventoryType:String, quantity:Long)
-    {
-        val user=userRecords.getUser(userName)
-        user?.lockInventory(inventoryType,quantity)
+    fun lockInventoryForUser(userName: String, inventoryType: String, quantity: Long) {
+        val user = userRecords.getUser(userName)
+        user?.lockInventory(inventoryType, quantity)
     }
 
     fun registerUser(userData: UserCreationDTO): Map<String, String> {
         val user = User(
-            userData.firstName!!.trim(),
-            userData.lastName!!.trim(),
-            userData.phoneNumber!!,
-            userData.email!!,
-            userData.username!!
+            userData.firstName.trim(),
+            userData.lastName.trim(),
+            userData.phoneNumber,
+            userData.email,
+            userData.username
         )
         userRecords.addUser(user)
         userRecords.addEmail(user.email)
@@ -93,7 +92,7 @@ class UserService(private val userRecords: UserRecords) {
 
         val user = userRecords.getUser(userName)!!
         val inventory = user.getInventory(inventoryRequest.esopType!!)
-        errorList.addAll(inventory.checkInventoryOverflow(inventoryRequest.quantity!!))
+        errorList.addAll(inventory.checkInventoryOverflow(inventoryRequest.quantity))
         if (errorList.isNotEmpty()) {
             return errorList
         }
@@ -105,8 +104,9 @@ class UserService(private val userRecords: UserRecords) {
 
         user.addToInventory(inventoryData)
 
-        return "${inventoryData.quantity!!} ${inventoryData.esopType!!.lowercase()} esops added to account."
+        return "${inventoryData.quantity} ${inventoryData.esopType!!.lowercase()} esops added to account."
     }
+
     fun validateWalletRequest(userName: String, walletRequest: AddWalletDTO): List<String> {
         val errorList = mutableListOf<String>()
         errorList.addAll(checkIfUserExists(userName))
@@ -116,7 +116,7 @@ class UserService(private val userRecords: UserRecords) {
 
         val user = userRecords.getUser(userName)!!
         val userWallet = user.userWallet
-        errorList.addAll(userWallet.checkWalletOverflow(walletRequest.price!!))
+        errorList.addAll(userWallet.checkWalletOverflow(walletRequest.price))
         if (errorList.isNotEmpty()) {
             return errorList
         }

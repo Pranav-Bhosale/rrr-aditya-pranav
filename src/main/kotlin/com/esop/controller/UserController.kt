@@ -126,7 +126,7 @@ class UserController {
         if (errorList.isNotEmpty())
             return HttpResponse.badRequest(mapOf("errors" to errorList))
 
-        val response = userService.addMoneyToUser(userName, walletRequest.price!!)
+        val response = userService.addMoneyToUser(userName, walletRequest.price)
 
         return HttpResponse.ok(mapOf("message" to response))
     }

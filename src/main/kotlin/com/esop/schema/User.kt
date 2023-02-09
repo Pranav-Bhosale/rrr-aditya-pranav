@@ -21,9 +21,9 @@ class User(
 
     fun addToInventory(inventoryData: AddInventoryDTO): String {
         if (inventoryData.esopType == "NON_PERFORMANCE") {
-            userNonPerfInventory.addESOPsToInventory(inventoryData.quantity!!)
+            userNonPerfInventory.addESOPsToInventory(inventoryData.quantity)
         } else if (inventoryData.esopType == "PERFORMANCE") {
-            userPerformanceInventory.addESOPsToInventory(inventoryData.quantity!!)
+            userPerformanceInventory.addESOPsToInventory(inventoryData.quantity)
             return "${inventoryData.quantity} Performance ESOPs added to account."
         }
         return "None"

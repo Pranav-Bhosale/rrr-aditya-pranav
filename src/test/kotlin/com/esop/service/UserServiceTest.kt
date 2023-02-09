@@ -96,7 +96,7 @@ class UserServiceTest {
             quantity = 10, type = "BUY", price = 10, esopType = null
         )
 
-        val actualErrors = orderService.validateOrderRequest(user.username!!, order)
+        val actualErrors = orderService.validateOrderRequest(user.username, order)
 
         val expectedErrors = emptyList<String>()
         assertEquals(expectedErrors, actualErrors, "error list returned must be empty")
@@ -111,7 +111,7 @@ class UserServiceTest {
         )
         userService.addMoneyToUser("sankar06", 99L)
 
-        val actualErrors = orderService.validateOrderRequest(user.username!!, order)
+        val actualErrors = orderService.validateOrderRequest(user.username, order)
 
         val expectedErrors = listOf("Insufficient funds")
         assertEquals(expectedErrors, actualErrors)
@@ -130,7 +130,7 @@ class UserServiceTest {
             AddInventoryDTO(MAX_INVENTORY_CAPACITY, "NON_PERFORMANCE")
         )
 
-        val validateOrderResponse = orderService.validateOrderRequest(user.username!!, order)
+        val validateOrderResponse = orderService.validateOrderRequest(user.username, order)
         assertTrue(validateOrderResponse.size == 1)
         assertTrue(validateOrderResponse[0] == "Inventory Limit exceeded")
     }
@@ -144,7 +144,7 @@ class UserServiceTest {
             quantity = 10, type = "SELL", price = 10, esopType = "NON_PERFORMANCE"
         )
 
-        val actualErrors = orderService.validateOrderRequest(user.username!!, order)
+        val actualErrors = orderService.validateOrderRequest(user.username, order)
 
         val expectedErrors = emptyList<String>()
         assertEquals(expectedErrors, actualErrors, "error list returned must be empty")
@@ -159,7 +159,7 @@ class UserServiceTest {
             quantity = 29, type = "SELL", price = 10, esopType = "NON_PERFORMANCE"
         )
 
-        val actualErrors = orderService.validateOrderRequest(user.username!!, order)
+        val actualErrors = orderService.validateOrderRequest(user.username, order)
 
         val expectedErrors = listOf("Insufficient non_performance inventory.")
         assertEquals(
@@ -179,7 +179,7 @@ class UserServiceTest {
         userService.addingInventoryToUser(userName = "sankar06", AddInventoryDTO(20, "NON_PERFORMANCE"))
         userService.addMoneyToUser("sankar06", MAX_WALLET_CAPACITY)
 
-        val validateOrderResponse = orderService.validateOrderRequest(user.username!!, order)
+        val validateOrderResponse = orderService.validateOrderRequest(user.username, order)
         assertTrue(validateOrderResponse.size == 1)
         assertTrue(validateOrderResponse[0] == "Wallet Limit exceeded")
     }
@@ -196,7 +196,7 @@ class UserServiceTest {
             quantity = 10, type = "SELL", price = 10, esopType = "PERFORMANCE"
         )
 
-        val actualErrors = orderService.validateOrderRequest(user.username!!, order)
+        val actualErrors = orderService.validateOrderRequest(user.username, order)
 
         val expectedErrors = emptyList<String>()
         assertEquals(expectedErrors, actualErrors, "error list returned must be empty")
@@ -210,7 +210,7 @@ class UserServiceTest {
             quantity = 29, type = "SELL", price = 10, esopType = "PERFORMANCE"
         )
 
-        val actualErrors = orderService.validateOrderRequest(user.username!!, order)
+        val actualErrors = orderService.validateOrderRequest(user.username, order)
 
         val expectedErrors = listOf("Insufficient performance inventory.")
         assertEquals(
