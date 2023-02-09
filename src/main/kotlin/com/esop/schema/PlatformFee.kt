@@ -2,6 +2,9 @@ package com.esop.schema
 
 import com.esop.PlatformFeeLessThanZeroException
 import java.math.BigInteger
+import com.esop.PLATFORM_COMISSION
+import java.lang.Math.round
+import kotlin.math.roundToLong
 
 class PlatformFee {
 
@@ -17,6 +20,12 @@ class PlatformFee {
 
         fun getPlatformFee(): BigInteger {
             return totalPlatformFee
+        }
+
+        fun calculatePlatformFee(esopType:String, orderExecutionPrice: Long): Long {
+            if(esopType == "NON_PERFORMANCE")
+                return (orderExecutionPrice * PLATFORM_COMISSION).roundToLong()
+            return 0L
         }
 
     }

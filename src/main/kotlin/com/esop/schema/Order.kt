@@ -9,16 +9,16 @@ enum class InventoryPriority(val priority: Int) {
 }
 
 class Order(
-    private var orderId: Long,
-    private var quantity: Long,
-    private var type: String,
-    private var price: Long,
-    private var userName: String,
-    var esopType: String?
+    private val orderId: Long,
+    private val quantity: Long,
+    private val type: String,
+    private val price: Long,
+    private val userName: String,
+    val esopType: String?
 ) {
-    var timeStamp = System.currentTimeMillis()
+    val timeStamp = System.currentTimeMillis()
     var orderStatus: String = "PENDING" // COMPLETED, PARTIAL, PENDING
-    var orderFilledLogs: MutableList<OrderFilledLog> = mutableListOf()
+    val orderFilledLogs: MutableList<OrderFilledLog> = mutableListOf()
 
 
     var inventoryPriority = NONE
@@ -72,7 +72,7 @@ class Order(
         }
     }
 
-    fun addOrderFilledLogs(orderFilledLog: OrderFilledLog) {
+    fun addExecutionDetails(orderFilledLog: OrderFilledLog) {
         orderFilledLogs.add(orderFilledLog)
     }
 }

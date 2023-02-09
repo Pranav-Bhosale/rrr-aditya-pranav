@@ -66,7 +66,7 @@ class OrderTest {
             null
         )
 
-        buyOrder.addOrderFilledLogs(buyOrderLog)
+        buyOrder.addExecutionDetails(buyOrderLog)
 
         assertEquals(1, buyOrder.orderFilledLogs.size)
     }
