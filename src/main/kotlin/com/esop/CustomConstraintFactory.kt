@@ -10,8 +10,7 @@ import io.micronaut.validation.validator.constraints.ConstraintValidator
 import jakarta.inject.Singleton
 
 @Factory
-class CustomConstraintFactory(private val userRecords: UserRecords) {
-    val username = UserService(userRecords)
+class CustomConstraintFactory(private val userService: UserService,private val userRecords: UserRecords) {
 
     @Singleton
     fun phoneNumberValidator(): ConstraintValidator<PhoneNumberValidator, String> {
@@ -30,7 +29,7 @@ class CustomConstraintFactory(private val userRecords: UserRecords) {
     @Singleton
     fun userNameValidator(): ConstraintValidator<UsernameValidator, String> {
         return ConstraintValidator { value, _, _ ->
-            value == null || !userRecords.checkIfUserExists(value)
+            value == null || userService.checkIfUserExists(value).isNotEmpty()
         }
     }
 

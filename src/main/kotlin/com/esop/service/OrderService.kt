@@ -2,7 +2,6 @@ package com.esop.service
 
 
 import com.esop.dto.CreateOrderDTO
-import com.esop.errors
 import com.esop.repository.OrderRecords
 import com.esop.repository.UserRecords
 import com.esop.schema.*
@@ -16,30 +15,31 @@ import kotlin.math.round
 private const val TWO_PERCENT = 0.02
 
 @Singleton
-class OrderService(private val userRecords: UserRecords, private val orderRecords: OrderRecords) {
+class OrderService(
+    private val userService: UserService,
+    private val userRecords: UserRecords,
+    private val orderRecords: OrderRecords
+) {
 
     fun validateOrderReq(userName: String, orderRequest: CreateOrderDTO): MutableList<String> {
         val errorList = mutableListOf<String>()
 
-        if (!userRecords.checkIfUserExists(userName)) {
-            errorList.add("User doesn't exist.")
+        errorList.addAll(userService.checkIfUserExists(userName))
+        if (errorList.isNotEmpty())
             return errorList
-        }
-
         val user = userRecords.getUser(userName)!!
         val wallet = user.userWallet
         val nonPerformanceInventory = user.userNonPerfInventory
         val orderValue = orderRequest.price!! * orderRequest.quantity!!
 
         if (orderRequest.type == "BUY") {
-            if(!user.checkBalance(orderValue))
-            {
+            if (!user.checkBalance(orderValue)) {
                 errorList.add("Insufficient funds")
                 return errorList
             }
             nonPerformanceInventory.assertInventoryWillNotOverflowOnAdding(orderRequest.quantity!!)
         } else if (orderRequest.type == "SELL") {
-            if(!user.checkInventory(orderRequest.esopType!!,orderRequest.quantity!!)){
+            if (!user.checkInventory(orderRequest.esopType!!, orderRequest.quantity!!)) {
                 errorList.add("Insufficient ${orderRequest.esopType!!.lowercase(Locale.getDefault())} inventory.")
                 return errorList
             }
@@ -47,12 +47,12 @@ class OrderService(private val userRecords: UserRecords, private val orderRecord
         }
         return errorList
     }
-    
-    fun createOrder(userName: String,orderRequest: CreateOrderDTO): Order{
+
+    fun createOrder(userName: String, orderRequest: CreateOrderDTO): Order {
         val user = userRecords.getUser(userName)!!
 
         var esopType: String? = null
-        if(orderRequest.type == "SELL"){
+        if (orderRequest.type == "SELL") {
             esopType = orderRequest.esopType!!
         }
 
@@ -67,12 +67,12 @@ class OrderService(private val userRecords: UserRecords, private val orderRecord
 
         userRecords.addOrderToUser(order)
 
-        if(order.getType() == "BUY") {
+        if (order.getType() == "BUY") {
             orderRecords.addBuyOrder(order)
             user.lockAmount(order.getPrice() * order.getQuantity())
-        }else{
+        } else {
             orderRecords.addSellOrder(order)
-            user.lockInventory(order.esopType!!,order.getQuantity())
+            user.lockInventory(order.esopType!!, order.getQuantity())
         }
 
         return order
@@ -204,11 +204,9 @@ class OrderService(private val userRecords: UserRecords, private val orderRecord
     }
 
     fun orderHistory(userName: String): Any {
-        val userErrors = ArrayList<String>()
-        if (!userRecords.checkIfUserExists(userName)) {
-            errors["USER_DOES_NOT_EXISTS"]?.let { userErrors.add(it) }
+        val userErrors: List<String> = userService.checkIfUserExists(userName)
+        if (userErrors.isNotEmpty())
             return mapOf("error" to userErrors)
-        }
         val orderDetails = userRecords.getUser(userName)!!.orderList
         val orderHistory = ArrayList<History>()
 
