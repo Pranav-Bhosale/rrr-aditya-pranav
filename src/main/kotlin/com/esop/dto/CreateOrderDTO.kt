@@ -26,9 +26,8 @@ class CreateOrderDTO @JsonCreator constructor(
     @JsonProperty("price")
     @field:NotNull(message = "Price can not be missing.")
     @field:Min(1, message = "Price can not be less than zero")
-    @field:Digits(
-        integer = 9,
-        fraction = 0,
+    @field:Max(
+        MAX_WALLET_CAPACITY,
         message = "amount can't exceed maximum wallet capacity of $MAX_WALLET_CAPACITY"
     )
     var price: Long,
