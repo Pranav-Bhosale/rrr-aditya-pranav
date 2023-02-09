@@ -31,7 +31,7 @@ class UserTest {
         userOne.userPerformanceInventory.addESOPsToInventory(esopToBeAdded)
         userOne.userPerformanceInventory.moveESOPsFromFreeToLockedState(esopToBeLocked)
 
-        userOne.transferLockedESOPsTo(userTwo, EsopTransferRequest("PERFORMANCE", currentTradeQuantity))
+        userOne.transferLockedESOPsTo(userTwo, InventoryTransferRequest("PERFORMANCE", currentTradeQuantity))
 
         Assertions.assertEquals(expectedFreeInventoryForUserOne, userOne.userPerformanceInventory.getFreeInventory())
         Assertions.assertEquals(

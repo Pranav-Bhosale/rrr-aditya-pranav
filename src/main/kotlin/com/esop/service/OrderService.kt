@@ -9,9 +9,6 @@ import com.esop.schema.PlatformFee.Companion.addPlatformFee
 import jakarta.inject.Singleton
 import java.util.*
 import kotlin.math.min
-import kotlin.math.round
-
-private const val TWO_PERCENT = 0.02
 
 @Singleton
 class OrderService(
@@ -110,36 +107,9 @@ class OrderService(
         )
     }
 
-    private fun updateOrderDetails(
-        currentTradeQuantity: Long, sellerOrder: Order, buyerOrder: Order
-    ) {
-        // Deduct money of quantity taken from buyer
-        val sellAmount = sellerOrder.getPrice() * (currentTradeQuantity)
-        val buyer = userRecords.getUser(buyerOrder.getUserName())!!
-        val seller = userRecords.getUser(sellerOrder.getUserName())!!
-        var platformFee = 0L
-
-
-        if (sellerOrder.esopType == "NON_PERFORMANCE") platformFee = round(sellAmount * TWO_PERCENT).toLong()
-
-        updateWalletBalances(sellAmount, platformFee, buyer, seller)
-
-
-        seller.transferLockedESOPsTo(buyer, EsopTransferRequest(sellerOrder.esopType!!, currentTradeQuantity))
-
-        val amountToBeReleased = (buyerOrder.getPrice() - sellerOrder.getPrice()) * (currentTradeQuantity)
-        buyer.userWallet.moveMoneyFromLockedToFree(amountToBeReleased)
-
-    }
-
-    private fun updateWalletBalances(
-        sellAmount: Long, platformFee: Long, buyer: User, seller: User
-    ) {
-        val adjustedSellAmount = sellAmount - platformFee
-        addPlatformFee(platformFee)
-
-        buyer.userWallet.removeMoneyFromLockedState(sellAmount)
-        seller.userWallet.addMoneyToWallet(adjustedSellAmount)
+    private fun modifyOrderState(order: Order, orderExecutionDetails: OrderExecutionDetailsRequest) {
+        order.subtractFromRemainingQuantity(orderExecutionDetails.orderExecutionQuantity)
+        order.updateStatus()
     }
 
     fun executeOrder(currentOrder: Order): String {
@@ -158,23 +128,69 @@ class OrderService(
     private fun performOrderMatching(currentOrder: Order, matchOrder: Order) {
         val buyOrder = identifyBuyOrder(currentOrder, matchOrder)
         val sellOrder = identifySellOrder(currentOrder, matchOrder)
-        val orderExecutionPrice = sellOrder.getPrice()
-        val orderExecutionQuantity = min(sellOrder.remainingQuantity, buyOrder.remainingQuantity)
 
-        buyOrder.subtractFromRemainingQuantity(orderExecutionQuantity)
-        sellOrder.subtractFromRemainingQuantity(orderExecutionQuantity)
+        val orderExecutionDetails = createOrderExecutionDetails(sellOrder, buyOrder)
 
-        buyOrder.updateStatus()
-        sellOrder.updateStatus()
-
-        createOrderFilledLogs(orderExecutionQuantity, orderExecutionPrice, sellOrder, buyOrder)
-
-        updateOrderDetails(
-            orderExecutionQuantity, sellOrder, buyOrder
+        val platformFee = PlatformFee.calculatePlatformFee(
+            sellOrder.esopType!!,
+            orderExecutionDetails.totalOrderExecutionValue
         )
+
+        addPlatformFee(platformFee)
+
+        transferResources(orderExecutionDetails, platformFee)
+        releaseResources(buyOrder, sellOrder, orderExecutionDetails)
+
+        modifyOrderState(buyOrder, orderExecutionDetails)
+        modifyOrderState(sellOrder, orderExecutionDetails)
+
+        addOrderExecutionDetails(orderExecutionDetails, sellOrder, buyOrder)
 
         orderRecords.removeOrderIfFilled(buyOrder)
         orderRecords.removeOrderIfFilled(sellOrder)
+    }
+
+    private fun transferResources(orderExecutionDetails: OrderExecutionDetailsRequest, platformFee: Long) {
+        val moneyTransferRequest = MoneyTransferRequest(
+            amountToBeDebitedFromBuyersWallet = orderExecutionDetails.totalOrderExecutionValue,
+            amountToBeCreditedToSellersAccount = (orderExecutionDetails.totalOrderExecutionValue - platformFee)
+        )
+        userService.moveMoneyFromBuyerToSeller(
+            orderExecutionDetails.buyerUserName,
+            orderExecutionDetails.sellerUserName,
+            moneyTransferRequest
+        )
+
+        val inventoryTransferRequest =
+            InventoryTransferRequest(
+                sellerInventoryType = orderExecutionDetails.esopType,
+                transferQuantity = orderExecutionDetails.orderExecutionQuantity
+            )
+        userService.moveInventoryFromSellerToBuyer(
+            orderExecutionDetails.sellerUserName, orderExecutionDetails.buyerUserName,
+            inventoryTransferRequest
+        )
+    }
+
+    private fun createOrderExecutionDetails(
+        sellOrder: Order,
+        buyOrder: Order
+    ) = OrderExecutionDetailsRequest(
+        min(sellOrder.remainingQuantity, buyOrder.remainingQuantity),
+        sellOrder.getPrice(),
+        buyOrder.getUserName(),
+        sellOrder.getUserName(),
+        sellOrder.esopType!!
+    )
+
+    private fun releaseResources(
+        buyOrder: Order,
+        sellOrder: Order,
+        orderExecutionDetailsRequest: OrderExecutionDetailsRequest
+    ) {
+        val amountToBeReleased =
+            (buyOrder.getPrice() - sellOrder.getPrice()) * orderExecutionDetailsRequest.orderExecutionQuantity
+        userService.releaseLockedMoneyFromBuyer(buyOrder.getUserName(), amountToBeReleased)
     }
 
     private fun identifyBuyOrder(currentOrder: Order, matchOrder: Order): Order {
@@ -187,18 +203,26 @@ class OrderService(
         return matchOrder
     }
 
-    private fun createOrderFilledLogs(
-        orderExecutionQuantity: Long, orderExecutionPrice: Long, sellOrder: Order, buyOrder: Order
+    private fun addOrderExecutionDetails(
+        orderExecutionDetailsRequest: OrderExecutionDetailsRequest, sellOrder: Order, buyOrder: Order
     ) {
         val buyOrderLog = OrderFilledLog(
-            orderExecutionQuantity, orderExecutionPrice, null, sellOrder.getUserName(), null
+            orderExecutionDetailsRequest.orderExecutionQuantity,
+            orderExecutionDetailsRequest.orderExecutionPrice,
+            null,
+            sellOrder.getUserName(),
+            null
         )
         val sellOrderLog = OrderFilledLog(
-            orderExecutionQuantity, orderExecutionPrice, sellOrder.esopType, null, buyOrder.getUserName()
+            orderExecutionDetailsRequest.orderExecutionQuantity,
+            orderExecutionDetailsRequest.orderExecutionPrice,
+            sellOrder.esopType,
+            null,
+            buyOrder.getUserName()
         )
 
-        buyOrder.addOrderFilledLogs(buyOrderLog)
-        sellOrder.addOrderFilledLogs(sellOrderLog)
+        buyOrder.addExecutionDetails(buyOrderLog)
+        sellOrder.addExecutionDetails(sellOrderLog)
     }
 
     fun orderHistory(userName: String): Any {

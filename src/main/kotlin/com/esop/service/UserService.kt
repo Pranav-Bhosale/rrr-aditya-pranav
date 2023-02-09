@@ -4,6 +4,8 @@ import com.esop.dto.AddInventoryDTO
 import com.esop.dto.AddWalletDTO
 import com.esop.dto.UserCreationDTO
 import com.esop.repository.UserRecords
+import com.esop.schema.InventoryTransferRequest
+import com.esop.schema.MoneyTransferRequest
 import com.esop.schema.Order
 import com.esop.schema.User
 import jakarta.inject.Singleton
@@ -129,5 +131,36 @@ class UserService(private val userRecords: UserRecords) {
         user.addToWallet(amountToBeAdded)
 
         return "$amountToBeAdded amount added to account."
+    }
+
+    fun moveInventoryFromSellerToBuyer(
+        sellerUserName: String,
+        buyerUserName: String,
+        inventoryTransferRequest: InventoryTransferRequest
+    ) {
+        val buyer = userRecords.getUser(buyerUserName)
+        val seller = userRecords.getUser(sellerUserName)
+
+        seller!!.getInventory(inventoryTransferRequest.sellerInventoryType)
+            .removeESOPsFromLockedState(inventoryTransferRequest.transferQuantity)
+        buyer!!.getInventory("NON_PERFORMANCE").addESOPsToInventory(inventoryTransferRequest.transferQuantity)
+    }
+
+    fun moveMoneyFromBuyerToSeller(
+        buyerUserName: String,
+        sellerUserName: String,
+        moneyTransferRequest: MoneyTransferRequest
+    ) {
+        val buyer = userRecords.getUser(buyerUserName)
+        val seller = userRecords.getUser(sellerUserName)
+
+        buyer!!.userWallet.removeMoneyFromLockedState(moneyTransferRequest.amountToBeDebitedFromBuyersWallet)
+        seller!!.userWallet.addMoneyToWallet(moneyTransferRequest.amountToBeCreditedToSellersAccount)
+
+    }
+
+    fun releaseLockedMoneyFromBuyer(buyerUserName: String, amountToBeReleased: Long) {
+        val buyer = userRecords.getUser(buyerUserName)
+        buyer!!.userWallet.moveMoneyFromLockedToFree(amountToBeReleased)
     }
 }
