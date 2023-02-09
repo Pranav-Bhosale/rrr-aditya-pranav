@@ -27,25 +27,57 @@ class OrderService(
         errorList.addAll(userService.checkIfUserExists(userName))
         if (errorList.isNotEmpty())
             return errorList
+
         val user = userRecords.getUser(userName)!!
         val wallet = user.userWallet
         val nonPerformanceInventory = user.userNonPerfInventory
         val orderValue = orderRequest.price!! * orderRequest.quantity!!
 
         if (orderRequest.type == "BUY") {
-            if (!user.checkBalance(orderValue)) {
-                errorList.add("Insufficient funds")
-                return errorList
-            }
-            nonPerformanceInventory.assertInventoryWillNotOverflowOnAdding(orderRequest.quantity!!)
+            validateBuyOrderReq(errorList, user, orderValue, nonPerformanceInventory, orderRequest)
         } else if (orderRequest.type == "SELL") {
-            if (!user.checkInventory(orderRequest.esopType!!, orderRequest.quantity!!)) {
-                errorList.add("Insufficient ${orderRequest.esopType!!.lowercase(Locale.getDefault())} inventory.")
-                return errorList
-            }
-            wallet.assertWalletWillNotOverflowOnAdding(orderValue)
+            validateSellOrderReq(errorList, user, orderRequest, wallet, orderValue)
         }
         return errorList
+    }
+
+    private fun validateSellOrderReq(
+        errorList: MutableList<String>,
+        user: User,
+        orderRequest: CreateOrderDTO,
+        wallet: Wallet,
+        orderValue: Long
+    ) {
+        errorList.addAll(checkForInsufficientInventory(user, orderRequest))
+        wallet.assertWalletWillNotOverflowOnAdding(orderValue)
+    }
+
+    private fun validateBuyOrderReq(
+        errorList: MutableList<String>,
+        user: User,
+        orderValue: Long,
+        nonPerformanceInventory: Inventory,
+        orderRequest: CreateOrderDTO
+    ) {
+        errorList.addAll(checkForInsufficientFunds(user, orderValue))
+        nonPerformanceInventory.assertInventoryWillNotOverflowOnAdding(orderRequest.quantity!!)
+    }
+
+    private fun checkForInsufficientInventory(
+        user: User,
+        orderRequest: CreateOrderDTO
+    ): List<String> {
+        if (!user.checkInventory(orderRequest.esopType!!, orderRequest.quantity!!)) {
+            return listOf("Insufficient ${orderRequest.esopType!!.lowercase(Locale.getDefault())} inventory.")
+        }
+        return emptyList()
+    }
+
+    private fun checkForInsufficientFunds(user: User, orderValue: Long): List<String> {
+        if (!user.checkBalance(orderValue)) {
+            return listOf("Insufficient funds")
+        }
+        return emptyList()
     }
 
     fun createOrder(userName: String, orderRequest: CreateOrderDTO): Order {
@@ -117,7 +149,7 @@ class OrderService(
     }
 
 
-    fun placeOrder(order: Order): Map<String, String> {
+    fun executeOrder(order: Order): Map<String, String> {
         if (order.getType() == "BUY") {
             executeBuyOrder(order)
         } else {
