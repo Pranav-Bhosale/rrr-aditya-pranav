@@ -44,8 +44,9 @@ class Order(
     }
 
     fun getOrderValue(): Long {
-        return price*quantity
+        return price * quantity
     }
+
     fun getType(): String {
         return type
     }
