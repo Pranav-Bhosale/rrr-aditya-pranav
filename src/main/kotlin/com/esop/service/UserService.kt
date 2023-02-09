@@ -20,6 +20,19 @@ class UserService(private val userRecords: UserRecords) {
         return emptyList()
     }
 
+    fun lockWalletForUser(userName: String,amountToBeLocked: Long)
+    {
+       val user=userRecords.getUser(userName)
+        user?.lockAmount(amountToBeLocked)
+    }
+
+    fun lockInventoryForUser(userName: String, inventoryType:String, quantity:Long)
+    {
+        val user=userRecords.getUser(userName)
+        user?.lockInventory(inventoryType,quantity)
+    }
+
+
     fun registerUser(userData: UserCreationDTO): Map<String, String> {
         val user = User(
             userData.firstName!!.trim(),

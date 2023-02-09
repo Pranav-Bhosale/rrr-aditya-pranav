@@ -83,32 +83,33 @@ class OrderService(
     }
 
     fun placeOrder(userName: String, orderRequest: CreateOrderDTO): Order {
-        val user = userRecords.getUser(userName)!!
-
         val order = createOrder(orderRequest, userName)
 
         orderRecords.addOrder(order)
         userService.addOrderToUser(order)
 
-        if (order.getType() == "BUY") {
-            user.lockAmount(order.getPrice() * order.getQuantity())
-        } else {
-            user.lockInventory(order.esopType!!, order.getQuantity())
-        }
+        lockResourcesForOrder(order)
 
         return order
     }
 
-    private fun createOrder(orderRequest: CreateOrderDTO, userName: String): Order {
-        var esopType: String? = null
-        if (orderRequest.type == "SELL") {
-            esopType = orderRequest.esopType!!
+    private fun lockResourcesForOrder(order: Order) {
+        if (order.getType() == "BUY") {
+            userService.lockWalletForUser(order.getUserName(), order.getOrderValue())
+        } else {
+            userService.lockInventoryForUser(order.getUserName(), order.esopType!!, order.getQuantity())
         }
+    }
+
+    private fun createOrder(orderRequest: CreateOrderDTO, userName: String): Order {
+        val esopType: String? =
+            if (orderRequest.type == "SELL") orderRequest.esopType!!
+            else null
 
         return Order(
             orderRecords.generateOrderId(),
             orderRequest.quantity,
-            orderRequest.type.uppercase(),
+            orderRequest.type,
             orderRequest.price,
             userName,
             esopType
