@@ -65,7 +65,7 @@ class OrderServiceTest {
     @Test
     fun `It should place BUY order`() {
         //Arrange
-        val buyOrder = Order(10, "BUY", 10, "sankar", null)
+        val buyOrder = createBuyOrderForUser("sankar",10,10)
 
         //Act
         orderService.executeOrder(buyOrder)
@@ -79,7 +79,7 @@ class OrderServiceTest {
     @Test
     fun `It should place SELL order`() {
         //Arrange
-        val sellOrder = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
+        val sellOrder = createNonPerformanceSellOrderForUser("sankar",10,10)
 
         //Act
         orderService.executeOrder(sellOrder)

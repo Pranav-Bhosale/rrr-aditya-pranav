@@ -4,13 +4,16 @@ import com.esop.dto.AddInventoryDTO
 import com.esop.dto.AddWalletDTO
 import com.esop.dto.UserCreationDTO
 import com.esop.repository.UserRecords
+import com.esop.schema.Order
 import com.esop.schema.User
 import jakarta.inject.Singleton
 
 @Singleton
 class UserService(private val userRecords: UserRecords) {
 
-
+    fun addOrderToUser(order: Order){
+        userRecords.addOrder(order)
+    }
     fun checkIfUserExists(userName: String): List<String> {
         if (!userRecords.checkIfUserExists(userName))
             return listOf("User doesn't exist.")

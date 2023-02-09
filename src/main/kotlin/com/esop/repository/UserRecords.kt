@@ -38,7 +38,7 @@ class UserRecords {
         return phoneNumbers.contains(phoneNumber)
     }
 
-    fun addOrderToUser(order: Order) {
+    fun addOrder(order: Order) {
         getUser(order.getUserName())?.addOrder(order)
     }
 }

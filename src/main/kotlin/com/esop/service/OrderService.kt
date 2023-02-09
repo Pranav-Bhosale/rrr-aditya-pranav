@@ -99,13 +99,12 @@ class OrderService(
         )
         order.orderID = orderRecords.generateOrderId()
 
-        userRecords.addOrderToUser(order)
+        orderRecords.addOrder(order)
+        userService.addOrderToUser(order)
 
         if (order.getType() == "BUY") {
-            orderRecords.addBuyOrder(order)
             user.lockAmount(order.getPrice() * order.getQuantity())
         } else {
-            orderRecords.addSellOrder(order)
             user.lockInventory(order.esopType!!, order.getQuantity())
         }
 
@@ -161,7 +160,6 @@ class OrderService(
     }
 
     private fun executeBuyOrder(buyOrder: Order) {
-        orderRecords.addBuyOrder(buyOrder)
         var sellOrder = orderRecords.getSellOrder()
         if (sellOrder != null) {
             while (buyOrder.orderStatus != "COMPLETED" && sellOrder!!.getPrice() <= buyOrder.getPrice()) {
@@ -174,7 +172,6 @@ class OrderService(
     }
 
     private fun executeSellOrder(sellOrder: Order) {
-        orderRecords.addSellOrder(sellOrder)
         var buyOrder = orderRecords.getBuyOrder()
         if (buyOrder != null) {
             while (sellOrder.orderStatus != "COMPLETED" && sellOrder.getPrice() <= buyOrder!!.getPrice()) {
@@ -204,12 +201,8 @@ class OrderService(
             buyOrder
         )
 
-        if (buyOrder.orderStatus == "COMPLETED") {
-            orderRecords.removeBuyOrder(buyOrder)
-        }
-        if (sellOrder.orderStatus == "COMPLETED") {
-            orderRecords.removeSellOrder(sellOrder)
-        }
+        orderRecords.removeOrderIfFilled(buyOrder)
+        orderRecords.removeOrderIfFilled(sellOrder)
     }
 
     private fun createOrderFilledLogs(

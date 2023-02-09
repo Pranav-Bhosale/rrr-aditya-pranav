@@ -38,7 +38,7 @@ class OrderRecordsTest {
     @Test
     fun `should return sell order`() {
         val sellOrder = Order(10, "SELL", 10, "sankar", "NON_PERFORMANCE")
-        orderRecords.addSellOrder(sellOrder)
+        orderRecords.addOrder(sellOrder)
         val expectedOrderType = "SELL"
 
         val response = orderRecords.getSellOrder()
@@ -56,7 +56,7 @@ class OrderRecordsTest {
     @Test
     fun `should return buy order`() {
         val buyOrder = Order(10, "BUY", 10, "sankar", null)
-        orderRecords.addBuyOrder(buyOrder)
+        orderRecords.addOrder(buyOrder)
         val expectedOrderType = "BUY"
 
         val response = orderRecords.getBuyOrder()
@@ -74,10 +74,11 @@ class OrderRecordsTest {
     @Test
     fun `it should remove buy order`() {
         val buyOrder = Order(10, "BUY", 10, "sankar", null)
-        orderRecords.addBuyOrder(buyOrder)
+        orderRecords.addOrder(buyOrder)
         val response = orderRecords.getBuyOrder()
 
-        orderRecords.removeBuyOrder(response!!)
+        response?.orderStatus = "COMPLETED"
+        orderRecords.removeOrderIfFilled(response!!)
 
         assertNull(orderRecords.getBuyOrder())
     }
@@ -85,10 +86,11 @@ class OrderRecordsTest {
     @Test
     fun `it should remove sell order`() {
         val sellOrder = Order(10, "SELL", 10, "sankar", "NON_PERFORMANCE")
-        orderRecords.addSellOrder(sellOrder)
+        orderRecords.addOrder(sellOrder)
         val response = orderRecords.getSellOrder()
 
-        orderRecords.removeSellOrder(response!!)
+        response?.orderStatus = "COMPLETED"
+        orderRecords.removeOrderIfFilled(response!!)
 
         assertNull(orderRecords.getSellOrder())
     }
@@ -97,8 +99,8 @@ class OrderRecordsTest {
     fun `it should return performance sell order when one non performance sell order and performance sell order is added`() {
         val nonPerformanceSellOrder = createNonPerformanceSellOrder(15, 10)
         val performanceSellOrder = createPerformanceSellOrder(15, 10)
-        orderRecords.addSellOrder(nonPerformanceSellOrder)
-        orderRecords.addSellOrder(performanceSellOrder)
+        orderRecords.addOrder(nonPerformanceSellOrder)
+        orderRecords.addOrder(performanceSellOrder)
 
         val response = orderRecords.getSellOrder()
 
@@ -112,8 +114,8 @@ class OrderRecordsTest {
     fun `it should return non performance sell order whose price is less when two non performance sell order are added`() {
         val nonPerformanceSellOrder1 = createNonPerformanceSellOrder(10, 10)
         val nonPerformanceSellOrder2 = createNonPerformanceSellOrder(10, 15)
-        orderRecords.addSellOrder(nonPerformanceSellOrder1)
-        orderRecords.addSellOrder(nonPerformanceSellOrder2)
+        orderRecords.addOrder(nonPerformanceSellOrder1)
+        orderRecords.addOrder(nonPerformanceSellOrder2)
 
         val response = orderRecords.getSellOrder()
 
@@ -130,12 +132,13 @@ class OrderRecordsTest {
         val performanceSellOrder1 = createPerformanceSellOrder(10, 10)
         sleep(10)
         val performanceSellOrder2 = createPerformanceSellOrder(10, 10)
-        orderRecords.addSellOrder(performanceSellOrder2)
-        orderRecords.addSellOrder(performanceSellOrder1)
+        orderRecords.addOrder(performanceSellOrder2)
+        orderRecords.addOrder(performanceSellOrder1)
 
         val response1 = orderRecords.getSellOrder()
         if (response1 != null) {
-            orderRecords.removeSellOrder(response1)
+            response1.orderStatus = "COMPLETED"
+            orderRecords.removeOrderIfFilled(response1)
         }
         val response2 = orderRecords.getSellOrder()
 
@@ -149,12 +152,13 @@ class OrderRecordsTest {
         val performanceSellOrder1 = createPerformanceSellOrder(10, 10)
         sleep(10)
         val performanceSellOrder2 = createPerformanceSellOrder(10, 10)
-        orderRecords.addSellOrder(performanceSellOrder1)
-        orderRecords.addSellOrder(performanceSellOrder2)
+        orderRecords.addOrder(performanceSellOrder1)
+        orderRecords.addOrder(performanceSellOrder2)
 
         val response1 = orderRecords.getSellOrder()
         if (response1 != null) {
-            orderRecords.removeSellOrder(response1)
+            response1.orderStatus = "COMPLETED"
+            orderRecords.removeOrderIfFilled(response1)
         }
         val response2 = orderRecords.getSellOrder()
 
@@ -168,12 +172,13 @@ class OrderRecordsTest {
         val nonPerformanceSellOrder1 = createNonPerformanceSellOrder(10, 10)
         sleep(10)
         val nonPerformanceSellOrder2 = createNonPerformanceSellOrder(10, 10)
-        orderRecords.addSellOrder(nonPerformanceSellOrder2)
-        orderRecords.addSellOrder(nonPerformanceSellOrder1)
+        orderRecords.addOrder(nonPerformanceSellOrder2)
+        orderRecords.addOrder(nonPerformanceSellOrder1)
 
         val response1 = orderRecords.getSellOrder()
         if (response1 != null) {
-            orderRecords.removeSellOrder(response1)
+            response1.orderStatus = "COMPLETED"
+            orderRecords.removeOrderIfFilled(response1)
         }
         val response2 = orderRecords.getSellOrder()
 
@@ -187,12 +192,13 @@ class OrderRecordsTest {
         val nonPerformanceSellOrder1 = createNonPerformanceSellOrder(10, 10)
         sleep(10)
         val nonPerformanceSellOrder2 = createNonPerformanceSellOrder(10, 10)
-        orderRecords.addSellOrder(nonPerformanceSellOrder1)
-        orderRecords.addSellOrder(nonPerformanceSellOrder2)
+        orderRecords.addOrder(nonPerformanceSellOrder1)
+        orderRecords.addOrder(nonPerformanceSellOrder2)
 
         val response1 = orderRecords.getSellOrder()
         if (response1 != null) {
-            orderRecords.removeSellOrder(response1)
+            response1.orderStatus = "COMPLETED"
+            orderRecords.removeOrderIfFilled(response1)
         }
         val response2 = orderRecords.getSellOrder()
 
@@ -205,8 +211,8 @@ class OrderRecordsTest {
     fun `it should return performance sell order whose price is less when two performance sell order are added`() {
         val performanceSellOrder1 = createPerformanceSellOrder(10, 10)
         val performanceSellOrder2 = createPerformanceSellOrder(10, 15)
-        orderRecords.addSellOrder(performanceSellOrder1)
-        orderRecords.addSellOrder(performanceSellOrder2)
+        orderRecords.addOrder(performanceSellOrder1)
+        orderRecords.addOrder(performanceSellOrder2)
 
         val response = orderRecords.getSellOrder()
 
@@ -222,8 +228,8 @@ class OrderRecordsTest {
     fun `it should return performance sell order whose price is less when two performance sell order are added when addition of order is altered`() {
         val performanceSellOrder1 = createPerformanceSellOrder(10, 10)
         val performanceSellOrder2 = createPerformanceSellOrder(10, 15)
-        orderRecords.addSellOrder(performanceSellOrder2)
-        orderRecords.addSellOrder(performanceSellOrder1)
+        orderRecords.addOrder(performanceSellOrder2)
+        orderRecords.addOrder(performanceSellOrder1)
 
         val response = orderRecords.getSellOrder()
 
@@ -239,8 +245,8 @@ class OrderRecordsTest {
     fun `it should return non performance sell order whose price is less when two non performance sell order are added when addition of order is altered`() {
         val nonPerformanceSellOrder1 = createNonPerformanceSellOrder(10, 10)
         val nonPerformanceSellOrder2 = createNonPerformanceSellOrder(10, 15)
-        orderRecords.addSellOrder(nonPerformanceSellOrder2)
-        orderRecords.addSellOrder(nonPerformanceSellOrder1)
+        orderRecords.addOrder(nonPerformanceSellOrder2)
+        orderRecords.addOrder(nonPerformanceSellOrder1)
 
         val response = orderRecords.getSellOrder()
 
@@ -257,12 +263,13 @@ class OrderRecordsTest {
         val buyOrder1 = createBuyOrder(10, 10)
         sleep(10)
         val buyOrder2 = createBuyOrder(10, 10)
-        orderRecords.addBuyOrder(buyOrder1)
-        orderRecords.addBuyOrder(buyOrder2)
+        orderRecords.addOrder(buyOrder1)
+        orderRecords.addOrder(buyOrder2)
 
         val response1 = orderRecords.getBuyOrder()
         if (response1 != null) {
-            orderRecords.removeBuyOrder(response1)
+            response1.orderStatus = "COMPLETED"
+            orderRecords.removeOrderIfFilled(response1)
         }
         val response2 = orderRecords.getBuyOrder()
 
@@ -275,8 +282,8 @@ class OrderRecordsTest {
     fun `it should return buy order of highest price when two buy order has different price`() {
         val buyOrder1 = createBuyOrder(10, 10)
         val buyOrder2 = createBuyOrder(15, 15)
-        orderRecords.addBuyOrder(buyOrder1)
-        orderRecords.addBuyOrder(buyOrder2)
+        orderRecords.addOrder(buyOrder1)
+        orderRecords.addOrder(buyOrder2)
 
         val response = orderRecords.getBuyOrder()
 

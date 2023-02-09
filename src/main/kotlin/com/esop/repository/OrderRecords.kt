@@ -13,29 +13,33 @@ class OrderRecords {
         return orderId++
     }
 
-    fun addBuyOrder(buyOrder: Order) {
-        buyOrders.add(buyOrder)
+    fun addOrder(order: Order) {
+        if (order.getType() == "BUY") {
+            buyOrders.add(order)
+        } else if (order.getType() == "SELL") {
+            sellOrders.add(order)
+        }
     }
 
-    fun addSellOrder(sellOrder: Order) {
-        sellOrders.add(sellOrder)
-    }
-
-    fun removeBuyOrder(buyOrder: Order) {
-        buyOrders.remove(buyOrder)
-    }
-
-    fun removeSellOrder(sellOrder: Order) {
-        sellOrders.remove(sellOrder)
+    fun removeOrderIfFilled(order: Order) {
+        if(order.orderStatus == "COMPLETED") {
+            if (order.getType() == "BUY") {
+                buyOrders.remove(order)
+            } else if (order.getType() == "SELL") {
+                sellOrders.remove(order)
+            }
+        }
     }
 
     fun getBuyOrder(): Order? {
-        if(buyOrders.size > 0){
-            var sortedBuyOrders = buyOrders.sortedWith(compareByDescending<Order> { it.getPrice() }.thenBy { it.timeStamp })
+        if (buyOrders.size > 0) {
+            var sortedBuyOrders =
+                buyOrders.sortedWith(compareByDescending<Order> { it.getPrice() }.thenBy { it.timeStamp })
             return sortedBuyOrders[0]
         }
         return null
     }
+
     fun getSellOrder(): Order? {
         if (sellOrders.size > 0) {
             var sortedSellOrders = sortAscending()
@@ -52,7 +56,7 @@ class OrderRecords {
                     return o1.inventoryPriority.priority - o2.inventoryPriority.priority
 
                 if (o1.inventoryPriority.priority == 1) {
-                    if(o1.getPrice() == o2.getPrice()){
+                    if (o1.getPrice() == o2.getPrice()) {
                         if (o1.timeStamp < o2.timeStamp)
                             return -1
                         return 1
