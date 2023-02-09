@@ -67,7 +67,7 @@ class UserController {
 
     @Error(exception = RuntimeException::class)
     fun onRuntimeError(ex: RuntimeException): HttpResponse<Map<String, List<*>>> {
-        return HttpResponse.serverError(mapOf("errors" to arrayListOf(ex.message )))
+        return HttpResponse.serverError(mapOf("errors" to arrayListOf(ex.message)))
     }
 
 
@@ -82,15 +82,12 @@ class UserController {
 
     @Post(uri = "/{userName}/order", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun order(userName: String, @Body @Valid orderData: CreateOrderDTO): Any? {
-
         var errorList = orderService.validateOrderReq(userName, orderData)
-        if (errorList.size > 0) {
+        if (errorList.isNotEmpty())
             return HttpResponse.badRequest(mapOf("errors" to errorList))
-        }
 
         val order = orderService.createOrder(userName, orderData)
-
-        return orderService.placeOrder(order)
+        return orderService.executeOrder(order)
     }
 
     @Get(uri = "/{userName}/accountInformation", produces = [MediaType.APPLICATION_JSON])

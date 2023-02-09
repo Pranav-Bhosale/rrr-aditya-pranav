@@ -69,7 +69,7 @@ class OrderServiceTest {
         val buyOrder = Order(10, "BUY", 10, "sankar", null)
 
         //Act
-        orderService.placeOrder(buyOrder)
+        orderService.executeOrder(buyOrder)
 
         //Assert
         assertTrue {
@@ -83,7 +83,7 @@ class OrderServiceTest {
         val sellOrder = Order(10, "SELL", 10, "kajal", "NON_PERFORMANCE")
 
         //Act
-        orderService.placeOrder(sellOrder)
+        orderService.executeOrder(sellOrder)
 
         //Assert
         assertTrue {
@@ -101,7 +101,7 @@ class OrderServiceTest {
         val buyOrder = createBuyOrderForUser("sankar", 10, 10)
 
         //Act
-        orderService.placeOrder(buyOrder)
+        orderService.executeOrder(buyOrder)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -123,7 +123,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 25, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -159,7 +159,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -192,7 +192,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 5, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -220,7 +220,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 15, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -251,7 +251,7 @@ class OrderServiceTest {
         val sellOrderByKajal = createNonPerformanceSellOrderForUser("kajal", 25, 10)
 
         //Act
-        orderService.placeOrder(sellOrderByKajal)
+        orderService.executeOrder(sellOrderByKajal)
 
         //Assert
         assertEquals(25, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -287,7 +287,7 @@ class OrderServiceTest {
         val sellOrderBySankar = createNonPerformanceSellOrderForUser("sankar", 20, 10)
 
         //Act
-        orderService.placeOrder(sellOrderBySankar)
+        orderService.executeOrder(sellOrderBySankar)
 
         //Assert
         assertEquals(10, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -325,7 +325,7 @@ class OrderServiceTest {
         val buyOrder = createBuyOrderForUser("sankar", 10, 10)
 
         //Act
-        orderService.placeOrder(buyOrder)
+        orderService.executeOrder(buyOrder)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userPerformanceInventory.getFreeInventory())
@@ -344,7 +344,7 @@ class OrderServiceTest {
         val sellOrder = createPerformanceSellOrderForUser("kajal", 10, 10)
 
         //Act
-        orderService.placeOrder(sellOrder)
+        orderService.executeOrder(sellOrder)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userPerformanceInventory.getFreeInventory())
@@ -363,7 +363,7 @@ class OrderServiceTest {
         val sellOrder = createNonPerformanceSellOrderForUser("kajal", 10, 10)
 
         //Act
-        orderService.placeOrder(sellOrder)
+        orderService.executeOrder(sellOrder)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -385,7 +385,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -421,7 +421,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userPerformanceInventory.getFreeInventory())
@@ -453,13 +453,13 @@ class OrderServiceTest {
         sleep(10)
         addPerformanceInventoryToUser("arun", 50)
         val sellOrderByArun = createPerformanceSellOrderForUser("arun", 10, 10)
-        orderService.placeOrder(sellOrderByKajal)
+        orderService.executeOrder(sellOrderByKajal)
 
         addMoneyToUser("sankar", 250)
         val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userPerformanceInventory.getFreeInventory())
@@ -496,7 +496,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 10)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -532,7 +532,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 20)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
@@ -568,7 +568,7 @@ class OrderServiceTest {
         val buyOrderBySankar = createBuyOrderForUser("sankar", 20, 20)
 
         //Act
-        orderService.placeOrder(buyOrderBySankar)
+        orderService.executeOrder(buyOrderBySankar)
 
         //Assert
         assertEquals(40, userRecords.getUser("kajal")!!.userNonPerfInventory.getFreeInventory())
